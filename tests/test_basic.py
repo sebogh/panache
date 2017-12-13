@@ -130,28 +130,28 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result[STYLES_]['wiki'], 'tsihtml')
 
     def test_determine_style_1(self):
-        options, _ = armor.parse_cmdline(['--medium=wiki'])
+        options, _, _ = armor.parse_cmdline(['--medium=wiki'])
         data = armor.get_input_yaml(self.markdown)
         result = armor.determine_style(options, data)
         expected = 'tsihtml'
         self.assertEqual(result, expected)
 
     def test_determine_style_2(self):
-        options, _ = armor.parse_cmdline([])
+        options, _, _ = armor.parse_cmdline([])
         data = armor.get_input_yaml(self.markdown)
         result = armor.determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_3(self):
-        options, _ = armor.parse_cmdline(['--medium=pdf'])
+        options, _, _ = armor.parse_cmdline(['--medium=pdf'])
         data = armor.get_input_yaml(self.markdown)
         result = armor.determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_4(self):
-        options, _ = armor.parse_cmdline(['--medium=pdf'])
+        options, _, _ = armor.parse_cmdline(['--medium=pdf'])
         data = armor.get_input_yaml(self.markdown)
         data[STYLE_] = 'pdf'
         result = armor.determine_style(options, data)
@@ -190,7 +190,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_1(self):
-        options, args = armor.parse_cmdline([])
+        options, args, _ = armor.parse_cmdline([])
         armor_styles = ArmorStyles()
         armor_styles.load(self.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
@@ -204,7 +204,7 @@ class MyTestCase(unittest.TestCase):
 
     def testcompile_command_line_2(self):
         style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
-        options, args = armor.parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
+        options, args, style_vars_dict = armor.parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
         armor_styles = ArmorStyles()
         armor_styles.load(options.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
@@ -212,10 +212,10 @@ class MyTestCase(unittest.TestCase):
         style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         parameters = armor_styles.resolve(style_name)
-        parameters = armor.substitute_style_vars(parameters, {'style_dir': 'foo'})
+        parameters = armor.substitute_style_vars(parameters, options, style_vars_dict)
         result = armor.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
-                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=foo/template-html.html'}
+                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % style_dir}
         self.assertEqual(set(result), expected)
 
 if __name__ == '__main__':

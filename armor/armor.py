@@ -50,6 +50,7 @@ def parse_cmdline(cl: List[str]):
     parser.add_option("--medium", dest="medium", default="")
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
     parser.add_option("--style-dir", dest="style_dir", default=default_style_dir)
+    parser.add_option("--style-var", dest="style_vars", action="append", default=[])
 
     (options, args) = parser.parse_args(cl)
 
@@ -79,7 +80,10 @@ OPTIONS
         The target medium.
     --style-dir=<PATH>
         Where to find style definitions. 
-        (Default: '{default_style_dir}'.  
+        (Default: '{default_style_dir}'. 
+    --style-var=<KEY>:<VALUE>    
+        A variable that should be replaced in the style template.
+        May be used several times.
     --debug
         Print the Pandoc command line to STDERR.
     -h, --help
@@ -114,7 +118,18 @@ AUTHOR
     if options.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    return options, args
+    # style variables must follow the rules of template strings
+    # see: https://docs.python.org/3.5/library/string.html#template-strings
+    style_var_pattern = re.compile('^([a-z_]+):(.*)$', flags=0)
+    style_vars_dict = dict()
+    for style_var in options.style_vars:
+        match = style_var_pattern.match(style_var)
+        if not match:
+            raise ArmorException("Invalid style variable '%s'." % style_var, 104)
+        style_vars_dict[match.group(1)] = match.group(2)
+
+
+    return options, args, style_vars_dict
 
 
 # see: https://stackoverflow.com/a/10840586
@@ -228,7 +243,33 @@ def add_special_meta(input_file, options, metadata):
     return metadata
 
 
-def substitute_style_vars(parameters, mapping):
+def substitute_style_vars(parameters, options, style_vars_dict):
+
+    # default style variables
+    mapping = {
+        'style_dir': options.style_dir,
+        'armor_dir': script_dir,
+        'build_date': "'%s'" % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'input_dir': '',
+        'input_basename': '',
+        'input_basename_root': '',
+        'input_basename_extension': '',
+    }
+
+    if options.input:
+        input_dir = os.path.dirname(options.input)
+        input_basename = os.path.basename(options.input)
+        input_basename_root, input_basename_extension = os.path.splittext(input_basename)
+        inputs_dict = {
+            'input_dir': input_dir,
+            'input_basename': input_basename,
+            'input_basename_root': input_basename_root,
+            'input_basename_extension': input_basename_extension,
+        }
+        mapping = {**mapping, **inputs_dict}
+
+    # add style variables from the command line
+    mapping = {**mapping, **style_vars_dict}
 
     yaml_dump = yaml.dump(parameters)
     template = Template(yaml_dump)
@@ -242,7 +283,7 @@ def main():
     try:
 
         # parse and validate command line
-        options, args = parse_cmdline(sys.argv[1:])
+        options, args, style_vars_dict = parse_cmdline(sys.argv[1:])
 
         # initialize styles from the data directory
         armor_styles = ArmorStyles()
@@ -270,10 +311,8 @@ def main():
         # resolve style to Pandoc compile parameters (and metadata)
         parameters = armor_styles.resolve(style)
 
-        # add special metadata
-        parameters[METADATA_] = add_special_meta(input_file, options, parameters[METADATA_])
-
-        parameters = substitute_style_vars(parameters, {'style_dir': options.style_dir})
+        # substitute variables in the resolved style
+        parameters = substitute_style_vars(parameters, options, style_vars_dict)
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
