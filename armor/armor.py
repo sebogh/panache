@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-""" armor: pandoc wrapped in styles
+""" armor: Pandoc wrapped in styles
 for more info: <https://github.com/sebogh/armor>
 Author    : Sebastian Bogan <sebogh@qibli.net>
 Copyright : Copyright 2017, Sebastian Bogan
