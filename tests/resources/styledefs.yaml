@@ -7,4 +7,4 @@ styledef_:
       toc: true
       toc-depth: 3
       highlight-style: tango
-      template: template-html.html
+      template: ${style_dir}/template-html.html

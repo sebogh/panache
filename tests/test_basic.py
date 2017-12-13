@@ -212,9 +212,10 @@ class MyTestCase(unittest.TestCase):
         style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         parameters = armor_styles.resolve(style_name)
+        parameters = armor.substitute_style_vars(parameters, {'style_dir': 'foo'})
         result = armor.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
-                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=template-html.html'}
+                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=foo/template-html.html'}
         self.assertEqual(set(result), expected)
 
 if __name__ == '__main__':

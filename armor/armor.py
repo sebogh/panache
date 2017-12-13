@@ -23,8 +23,8 @@ from armor.armorstyle import ArmorStyle
 from armor.armorstyles import ArmorStyles
 from armor.passthroughoptionparser import PassThroughOptionParser
 from armor.armorexception import ArmorException
-from armor.armoryaml import STYLEDEF_, STYLES_, STYLE_, PARENT_, COMMANDLINE_, METADATA_, FILTER_, RUN_, KILL_
-
+from armor.armoryaml import STYLEDEF_, STYLES_, STYLE_, COMMANDLINE_, METADATA_, FILTER_
+from string import Template
 
 # check script environment
 script = os.path.realpath(sys.argv[0])
@@ -200,8 +200,6 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
                 command.append('--%s' % key)
         else:
             command.append('--%s=%s' % (key, value))
-    #command.append('--style-dir=%s' % options.style_dir)
-    #command.append('--resource-path=%s' % options.style_dir)
     for run_filter in parameters[FILTER_]:
         command.append('--filter=%s' % run_filter)
 
@@ -213,6 +211,7 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
         sys.stderr.flush()
 
     return command
+
 
 def add_special_meta(input_file, options, metadata):
     input_file_dir = os.path.dirname(input_file)
@@ -227,6 +226,15 @@ def add_special_meta(input_file, options, metadata):
         metadata['rootname'] = "'%s'" % input_file_rootname
 
     return metadata
+
+
+def substitute_style_vars(parameters, mapping):
+
+    yaml_dump = yaml.dump(parameters)
+    template = Template(yaml_dump)
+    substituted = template.safe_substitute(mapping)
+    yaml_load = yaml.load(substituted)
+    return yaml_load
 
 
 def main():
@@ -264,6 +272,8 @@ def main():
 
         # add special metadata
         parameters[METADATA_] = add_special_meta(input_file, options, parameters[METADATA_])
+
+        parameters = substitute_style_vars(parameters, {'style_dir': options.style_dir})
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
