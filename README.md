@@ -11,13 +11,13 @@ Assume, for example, a document with the following Pandoc metadata-block:
 ```yaml
 ---
 styles_:
-  drafthtml: mydrafthtml
-  finalhtml: myfinalhtml
+  drafthtml: privatedrafthtml
+  finalhtml: privatefinalhtml
   wiki: wikihtml
 ---
 ```
 
-Then, depending on command line option `--medium`, armor would select either the `drafthtml`-, `finalhtml`- or `wikihtml`-style. It would compute the commandline, filters and metadata for the selected style (from external YAML files and style-definitions inside the input document) and finally call Pandoc.
+Then, depending on command line option `--medium`, armor would select either the `drafthtml`-, `privatefinalhtml`- or `privatewikihtml`-style. It would compute the commandline, filters and metadata for the selected style (from external YAML files and style-definitions inside the input document) and finally call Pandoc.
 
 armor doesn't run Pandoc for style-processing. It's meant to be fast and impose as few overhead as possible.
 
