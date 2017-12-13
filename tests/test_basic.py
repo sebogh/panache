@@ -1,32 +1,16 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 import re
 import tempfile
 import os
 import logging
+
 from .context import armor
-
-
-# shortcuts for armor-specific YAML words
-STYLEDEF_ = armor.STYLEDEF_
-STYLES_ = armor.STYLES_
-STYLE_ = armor.STYLE_
-PARENT_ = armor.PARENT_
-COMMANDLINE_ = armor.COMMANDLINE_
-METADATA_ = armor.METADATA_
-FILTER_ = armor.FILTER_
-RUN_ = armor.RUN_
-KILL_ = armor.KILL_
-
-format_variables = {
-    'STYLEDEF_': STYLEDEF_,
-    'STYLES_': STYLES_,
-    'STYLE_': STYLE_,
-    'PARENT_': PARENT_,
-    'COMMANDLINE_': COMMANDLINE_,
-    'METADATA_': METADATA_,
-    'FILTER_': FILTER_,
-    'RUN_': RUN_,
-    'KILL_': KILL_}
+from armor import armor
+from armor.armoryaml import STYLEDEF_, STYLES_, STYLE_, armor_yaml_format_variables
+from armor.armorstyle import ArmorStyle
+from armor.armorstyles import ArmorStyles
 
 
 class MyTestCase(unittest.TestCase):
@@ -35,7 +19,7 @@ class MyTestCase(unittest.TestCase):
 
         logging.getLogger().setLevel(logging.ERROR)
 
-        self.data_dir = tempfile.mkdtemp()
+        self.style_dir = tempfile.mkdtemp()
 
         # create a temporary styles definition file
         stylesdef_txt = """
@@ -48,8 +32,8 @@ class MyTestCase(unittest.TestCase):
     en_html:
         {METADATA_}:
             lang: en
-""".format(**format_variables)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="2", suffix=".yaml", dir=self.data_dir) as f:
+""".format(**armor_yaml_format_variables)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="2", suffix=".yaml", dir=self.style_dir) as f:
             f.writelines(stylesdef_txt)
             self.stylesdef_1 = f.name
 
@@ -66,8 +50,8 @@ class MyTestCase(unittest.TestCase):
         {PARENT_}: html
         {METADATA_}:
             lang: it
-""".format(**format_variables)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="1", suffix=".yaml", dir=self.data_dir) as f:
+""".format(**armor_yaml_format_variables)
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="1", suffix=".yaml", dir=self.style_dir) as f:
             f.writelines(stylesdef_txt)
             self.stylesdef_2 = f.name
 
@@ -88,7 +72,7 @@ class MyTestCase(unittest.TestCase):
 # Header 1
 
 ## Header 2
-""".format(**format_variables)
+""".format(**armor_yaml_format_variables)
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             f.write(markdown)
             self.markdown = f.name
@@ -143,13 +127,13 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(result)
         self.assertTrue(STYLES_ in result)
         self.assertTrue('wiki' in result[STYLES_])
-        self.assertEqual(result[STYLES_]['wiki'], 'html')
+        self.assertEqual(result[STYLES_]['wiki'], 'tsihtml')
 
     def test_determine_style_1(self):
         options, _ = armor.parse_cmdline(['--medium=wiki'])
         data = armor.get_input_yaml(self.markdown)
         result = armor.determine_style(options, data)
-        expected = 'html'
+        expected = 'tsihtml'
         self.assertEqual(result, expected)
 
     def test_determine_style_2(self):
@@ -175,31 +159,31 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_armor_styles_load_1(self):
-        armor_styles = armor.ArmorStyles()
+        armor_styles = ArmorStyles()
         self.assertEqual(len(armor_styles.styles), 0)
 
     def test_armor_styles_load_2(self):
-        armor_styles = armor.ArmorStyles()
-        armor_styles.load(self.data_dir)
+        armor_styles = ArmorStyles()
+        armor_styles.load(self.style_dir)
         self.assertEqual(len(armor_styles.styles), 3)
         self.assertEqual(set(armor_styles.styles.keys()), {'html', 'en_html', 'it_html'})
 
     def test_armor_styles_update_1(self):
-        armor_styles = armor.ArmorStyles()
-        armor_styles.load(self.data_dir)
+        armor_styles = ArmorStyles()
+        armor_styles.load(self.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
         style_name = 'html'
         self.assertEqual(armor_styles.styles[style_name].metadata['lang'], 'en')
-        style = armor.ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         self.assertEqual(armor_styles.styles[style_name].metadata['lang'], 'ru')
 
     def test_armor_styles_resolve_1(self):
-        armor_styles = armor.ArmorStyles()
-        armor_styles.load(self.data_dir)
+        armor_styles = ArmorStyles()
+        armor_styles.load(self.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
         style_name = 'html'
-        style = armor.ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         expected = {'filter': [], 'metadata': {'lang': 'ru', 'foo': 'bar'}, 'commandline': {'toc': True}}
         result = armor_styles.resolve(style_name)
@@ -207,11 +191,11 @@ class MyTestCase(unittest.TestCase):
 
     def testcompile_command_line_1(self):
         options, args = armor.parse_cmdline([])
-        armor_styles = armor.ArmorStyles()
-        armor_styles.load(self.data_dir)
+        armor_styles = ArmorStyles()
+        armor_styles.load(self.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
         style_name = 'html'
-        style = armor.ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         parameters = armor_styles.resolve(style_name)
         result = armor.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
@@ -219,18 +203,18 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
-        static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'static')
-        options, args = armor.parse_cmdline(['--data-dir=%s' % static_dir, '--medium=wiki'])
-        armor_styles = armor.ArmorStyles()
-        armor_styles.load(options.data_dir)
+        style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+        options, args = armor.parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
+        armor_styles = ArmorStyles()
+        armor_styles.load(options.style_dir)
         input_yaml = armor.get_input_yaml(self.markdown)
         style_name = armor.determine_style(options, input_yaml)
-        style = armor.ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         armor_styles.update(style)
         parameters = armor_styles.resolve(style_name)
         result = armor.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
-                    '--highlight-style=tango', '--html-q-tags', '--smart'}
+                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=template-html.html'}
         self.assertEqual(set(result), expected)
 
 if __name__ == '__main__':

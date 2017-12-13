@@ -1,0 +1,10 @@
+styledef_:
+  tsihtml:
+    commandline:
+      html-q-tags: true
+      smart: true
+      number-sections: true
+      toc: true
+      toc-depth: 3
+      highlight-style: tango
+      template: template-html.html
