@@ -2,9 +2,15 @@
 
 armor adds styles to Pandoc. 
 
-armor was very much inspired by [panzer]. In fact parts of it (e.g. some of the YAML-language) where shamelessly stolen from it. 
+armor was very much inspired by [panzer]. In fact, parts of it (e.g. some of the YAML-language) where shamelessly stolen from it. 
 
-armor is different from panzer in that implements a "challenge response method". Through that, a Markdown document may specify different styles for the same target format (e.g. a draft HTML-style and a selfcontained HTML-style). armor simply compiles a commandline, filters and metadata. armor adds style variables.
+armor is different from panzer in that implements a "challenge response method". Through that, a Markdown document may specify different styles for the same target format (e.g. a draft HTML-style and a selfcontained HTML-style). The style that gets selected depends on the command line argument `--medium` -- the chalenge.
+
+armor doesn't run Pandoc for style-processing. It's meant to be fast and impose as few overhead as possible.
+
+armor doesn't support `preflight`, `postflight`, `postprocessor ` or `cleanup`. It simply compiles commandline, filters and metadata based on styles. 
+
+armor adds style variables.
 
 # Installation
 
