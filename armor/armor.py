@@ -201,7 +201,7 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
         else:
             command.append('--%s=%s' % (key, value))
     #command.append('--style-dir=%s' % options.style_dir)
-    command.append('--resource-path=%s' % options.style_dir)
+    #command.append('--resource-path=%s' % options.style_dir)
     for run_filter in parameters[FILTER_]:
         command.append('--filter=%s' % run_filter)
 

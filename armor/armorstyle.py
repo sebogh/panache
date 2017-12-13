@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict
+from typing import Dict
+
+from armor.armoryaml import PARENT_, COMMANDLINE_, METADATA_, FILTER_, RUN_, KILL_
 
 class ArmorStyle:
 

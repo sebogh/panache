@@ -11,7 +11,7 @@ FILTER_ = 'filter'
 RUN_ = 'run'
 KILL_ = 'kill'
 
-format_variables = {
+armor_yaml_format_variables = {
     'STYLEDEF_': STYLEDEF_,
     'STYLES_': STYLES_,
     'STYLE_': STYLE_,

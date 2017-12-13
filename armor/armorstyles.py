@@ -45,8 +45,8 @@ class ArmorStyles:
                                 logging.warning("Ignoring duplicate definition of '%s' (found in'%s')."
                                                 % (style_name, path))
 
-                except:
-
+                except Exception as e:
+                    logging.warning(e)
                     pass
 
     def update(self, update):
