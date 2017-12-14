@@ -1,10 +1,32 @@
 # panache
 
+## Overview
+
 panache adds styles to Pandoc. 
 
-panache was very much inspired by [panzer]. In fact, parts of it (e.g. some of the YAML-language) where shamelessly stolen from it. 
+The idea of panache is similar to that of [panzer] and [Pandocomatic]. It is yet
+another Pandoc wrapper, that allows to assemble Pandoc-commandline options,
+-metadata and -filter into styles. Through that, panache simplifies Pandoc calls
+and ensures consistency across documents.
 
-panache is different from panzer in that implements a kind of "challenge response method". Through that, a Markdown document may specify "context-dependend" styles. Assume, for example, a document with the following Pandoc metadata-block:
+panache is similar to others for that cascading styles may be defined in
+separate YAML-files and within documents.
+
+panache is different for that its styles may contain variables and that
+documents may specify multiple styles / context dependable styles.
+
+## Context Dependable Styles
+
+Often a Markdown document is the source for different targets. For example a
+single document may be converted to HTML as part of a Wiki, a standalone version
+may be used locally, and a standalone and self-contained version may be send to
+a friend. At the same time, all version should be rendered using the private
+style (not the company one).
+
+To address this situation, panache allows documents to specify multiple styles,
+which get selected depending on a commandline option.
+
+Assume, for example, a document with the following metadata-block:
 
 ```yaml
 ---
@@ -15,27 +37,66 @@ styles_:
 ---
 ```
 
-Then, depending on command line option `--medium`, panache would select either the `privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would compute the commandline, filters and metadata for the selected style (from external YAML files and style-definitions inside the input document) and finally call Pandoc.
+Depending on the command line option `--medium`, panache would select either the
+`privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would compute
+the commandline, filters and metadata for the selected style and finally call
+Pandoc.
 
-panache doesn't run Pandoc for style-processing. It's meant to be fast and impose as few overhead as possible.
+## Cascading Style Definition
 
-panache doesn't support `preflight`, `postflight`, `postprocessor ` or `cleanup`. 
-
-panache adds style variables, which are substituted before handing over to Pandoc. For a style defined as: 
+panache allows to define styles in separate YAML-files and within documents. The
+definition for a style with the name `wikihtml` might look like the following:
 
 ```yaml
 ---
 styledef_:
   wikihtml:
     commandline:
-      data-dir: ${style_dir}/blub
+      template: /home/sebastian/templates/wiki-en.html
     metadata:
-      build-os: ${build_os}
+      build-os: Linux
+    filter:
+      run: pandoc-citeproc
 ---
 ```
 
-and an panache call like `panache.py --style-dir=/foo --stylevar=build_os:Linux`, `${style_dir}` and `${build_os}` would be replaced by `/foo` and `Linux` respectively. This, would then lead to the Pandoc commandline option `--data-dir=/foo/blub` and a metavariable `${build-os}` with the value `Linux`.
+A second derived style, that changes the template, may be defined by adding:
+    
+```yaml
+---
+germanwikihtml:
+  parent: wikihtml
+  commandline:
+      template: /home/sebastian/templates/wiki-de.html
+---
+```
 
+to the `styledef_` above or by adding it to a separate `styledef_` in another
+file.
+
+## Style Variables
+
+Obviously, the style definitions may work for the user `sebastian` but are
+likely to produce unexpected results for a different user. That is where style
+variables may be handy.
+
+panache allows to use variables in style definitions, wich are (as of
+"compiling" the final style) substituted based on commandline options. Using
+this, the above definition of the `germanwikihtml`-style may be rewritten as
+follows:
+
+```yaml
+---
+germanwikihtml:
+  parent: wikihtml
+  commandline:
+      template: ${template_dir}/wiki-de.html
+---
+```
+
+Then, if (for example) `--style-var=template_dir:/foo` would be passed to
+panache, then `template` would be resolved to `/foo/wiki-de.html` (and as
+`--template=/foo/wiki-de.html` passed to Pandoc).
 
 # Installation
 
@@ -48,6 +109,12 @@ Requirements:
 pip3 install git+https://github.com/sebogh/panache
 ````
 
+# Details
+
+tbd.
+
+
 [Pandoc]: https://pandoc.org/
 [Python]: https://www.python.org/downloads/
 [panzer]: https://github.com/msprev/panzer
+[Pandocomatic]: https://heerdebeer.org/Software/markdown/pandocomatic/
