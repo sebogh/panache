@@ -9,11 +9,11 @@ another Pandoc wrapper, that allows to assemble Pandoc-commandline options,
 -metadata and -filter into styles. Through that, panache simplifies Pandoc calls
 and ensures consistency across documents.
 
-panache is similar to others for that cascading styles may be defined in
-separate YAML-files and within documents.
+panache is similar to others in that cascading styles may be defined in separate
+YAML-files and within documents.
 
-panache is different for that its styles may contain variables and that
-documents may specify multiple styles / context dependable styles.
+panache is different in that its styles may contain variables and that documents
+may specify multiple styles / context dependable styles.
 
 ## Context Dependable Styles
 
