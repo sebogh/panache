@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# armor-specific YAML words
+# panache-specific YAML words
 STYLEDEF_ = 'styledef_'
 STYLES_ = 'styles_'
 STYLE_ = 'style_'
@@ -11,7 +11,7 @@ FILTER_ = 'filter'
 RUN_ = 'run'
 KILL_ = 'kill'
 
-armor_yaml_format_variables = {
+panache_yaml_format_variables = {
     'STYLEDEF_': STYLEDEF_,
     'STYLES_': STYLES_,
     'STYLE_': STYLE_,

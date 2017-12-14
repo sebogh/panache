@@ -5,10 +5,10 @@ import glob
 import logging
 import yaml
 
-from armor.armorstyle import ArmorStyle
-from armor.armoryaml import STYLEDEF_, COMMANDLINE_, METADATA_, FILTER_
+from panache.panachestyle import PanacheStyle
+from panache.panacheyaml import STYLEDEF_, COMMANDLINE_, METADATA_, FILTER_
 
-class ArmorStyles:
+class PanacheStyles:
 
     def __init__(self):
         self.styles = dict()
@@ -38,7 +38,7 @@ class ArmorStyles:
                                              % (style_name, path))
 
                                 self.styles[style_name] = \
-                                    ArmorStyle(style_name, data[STYLEDEF_][style_name], path)
+                                    PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
 
                             else:
 

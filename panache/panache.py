@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-""" armor: Pandoc wrapped in styles
-for more info: <https://github.com/sebogh/armor>
+""" panache: Pandoc wrapped in styles
+for more info: <https://github.com/sebogh/panache>
 Author    : Sebastian Bogan <sebogh@qibli.net>
 Copyright : Copyright 2017, Sebastian Bogan
 License   : BSD3
@@ -19,11 +19,11 @@ from datetime import datetime
 from subprocess import Popen
 from typing import List
 
-from armor.armorstyle import ArmorStyle
-from armor.armorstyles import ArmorStyles
-from armor.passthroughoptionparser import PassThroughOptionParser
-from armor.armorexception import ArmorException
-from armor.armoryaml import STYLEDEF_, STYLES_, STYLE_, COMMANDLINE_, METADATA_, FILTER_
+from panache.panachestyle import PanacheStyle
+from panache.panachestyles import PanacheStyles
+from panache.passthroughoptionparser import PassThroughOptionParser
+from panache.panacheexception import PanacheException
+from panache.panacheyaml import STYLEDEF_, STYLES_, STYLE_, COMMANDLINE_, METADATA_, FILTER_
 from string import Template
 
 # check script environment
@@ -104,7 +104,7 @@ AUTHOR
     if options.input:
         options.input = os.path.abspath(options.input)
         if not os.path.isfile(options.input):
-            raise ArmorException("No such file '%s'." % options.input, 102)
+            raise PanacheException("No such file '%s'." % options.input, 102)
 
     if options.output:
         options.output = os.path.abspath(options.output)
@@ -113,7 +113,7 @@ AUTHOR
     if options.style_dir:
         options.style_dir = os.path.abspath(options.style_dir)
         if not os.path.isdir(options.style_dir):
-            raise ArmorException("No such directory '%s'." % options.style_dir, 103)
+            raise PanacheException("No such directory '%s'." % options.style_dir, 103)
 
     if options.debug:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -125,7 +125,7 @@ AUTHOR
     for style_var in options.style_vars:
         match = style_var_pattern.match(style_var)
         if not match:
-            raise ArmorException("Invalid style variable '%s'." % style_var, 104)
+            raise PanacheException("Invalid style variable '%s'." % style_var, 104)
         style_vars_dict[match.group(1)] = match.group(2)
 
 
@@ -248,7 +248,7 @@ def substitute_style_vars(parameters, options, style_vars_dict):
     # default style variables
     mapping = {
         'style_dir': options.style_dir,
-        'armor_dir': script_dir,
+        'panache_dir': script_dir,
         'build_date': "'%s'" % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
         'input_basename': '',
@@ -286,9 +286,9 @@ def main():
         options, args, style_vars_dict = parse_cmdline(sys.argv[1:])
 
         # initialize styles from the data directory
-        armor_styles = ArmorStyles()
+        panache_styles = PanacheStyles()
         if options.style_dir:
-            armor_styles.load(options.style_dir)
+            panache_styles.load(options.style_dir)
 
         # copy STDIN to a temporary file, iff needed
         input_file = options.input
@@ -303,13 +303,13 @@ def main():
         # update (or add) style definitions based on definitions in the input file
         if input_yaml and STYLEDEF_ in input_yaml:
             for style_name in input_yaml[STYLEDEF_]:
-                armor_styles.update(ArmorStyle(style_name, input_yaml[STYLEDEF_][style_name], input_file))
+                panache_styles.update(PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], input_file))
 
         # determine desired style
         style = determine_style(options, input_yaml)
 
         # resolve style to Pandoc compile parameters (and metadata)
-        parameters = armor_styles.resolve(style)
+        parameters = panache_styles.resolve(style)
 
         # substitute variables in the resolved style
         parameters = substitute_style_vars(parameters, options, style_vars_dict)
@@ -337,7 +337,7 @@ def main():
         if not options.input:
             silent_remove(input_file)
 
-    except ArmorException as e:
+    except PanacheException as e:
         sys.stderr.write(e.message)
         sys.exit(e.code)
 

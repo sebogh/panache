@@ -2,9 +2,9 @@
 
 from typing import Dict
 
-from armor.armoryaml import PARENT_, COMMANDLINE_, METADATA_, FILTER_, RUN_, KILL_
+from panache.panacheyaml import PARENT_, COMMANDLINE_, METADATA_, FILTER_, RUN_, KILL_
 
-class ArmorStyle:
+class PanacheStyle:
 
     def __init__(self, name: str, data: Dict = None, source: str = None):
 
