@@ -2,7 +2,7 @@
 
 ## Overview
 
-panache adds styles to Pandoc. 
+panache adds styles to [Pandoc]. 
 
 The idea of panache is similar to that of [panzer] and [Pandocomatic]. It is yet
 another Pandoc wrapper, that allows to assemble Pandoc-commandline options,
