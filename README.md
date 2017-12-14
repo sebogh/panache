@@ -2,7 +2,7 @@
 
 ## Overview
 
-panache adds styles to Pandoc. 
+panache adds styles to [Pandoc]. 
 
 The idea of panache is similar to that of [panzer] and [Pandocomatic]. It is yet
 another Pandoc wrapper, that allows to assemble Pandoc-commandline options,
@@ -18,8 +18,8 @@ may specify multiple styles / context dependable styles.
 ## Context Dependable Styles
 
 Often a Markdown document is the source for different targets. For example a
-single document may be converted to HTML as part of a Wiki, a standalone version
-may be used locally, and a standalone and self-contained version may be send to
+single document may be converted to HTML as part of a Wiki, a standalone HTML file
+may be used locally, and a standalone and self-contained HTML-file may be send to
 a friend. At the same time, all version should be rendered using the private
 style (not the company one).
 
