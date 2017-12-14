@@ -31,20 +31,21 @@ echo choose a target from "test", "dist", "clean", "tidy", "help"
 GOTO :eof
 
 :TEST
-venv\Scripts\python tests\test_panache.py
+venv\Scripts\python.exe tests\test_panache.py
 GOTO :eof
 
 :DIST
-venv\Scripts\pyinstaller -p . --onefile panache\panache.py --distpath=dist
+venv\Scripts\pyinstaller -p . --onefile src\panache.py --distpath=dist
 GOTO :eof
 
 :CLEAN
 del /Q /F panache.spec
-del /Q /S build
+rmdir /Q /S build
+rmdir /Q /S __pycache__
 GOTO :eof
 
 :TIDY
-del /Q /S dist
+rmdir /Q /S dist
 GOTO :eof
 
 

@@ -3,11 +3,14 @@
 import logging
 import os
 import re
+import sys
 import tempfile
 import unittest
 
-from panache.panache import STYLE_, STYLEDEF_, STYLES_, PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
-    METADATA_, parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.panache import STYLE_, STYLEDEF_, STYLES_, PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
+    parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
     substitute_style_vars
 
 
