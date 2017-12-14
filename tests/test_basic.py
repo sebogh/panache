@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import unittest
+import logging
+import os
 import re
 import tempfile
-import os
-import logging
+import unittest
 
-from .context import panache
-from panache import panache
-from panache.panacheyaml import STYLEDEF_, STYLES_, STYLE_, panache_yaml_format_variables
-from panache.panachestyle import PanacheStyle
-from panache.panachestyles import PanacheStyles
+from panache.panache import STYLE_, STYLEDEF_, STYLES_, PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
+    METADATA_, parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
+    substitute_style_vars
 
 
 class MyTestCase(unittest.TestCase):
@@ -88,73 +86,73 @@ class MyTestCase(unittest.TestCase):
 
     def test_get_yaml_lines_1(self):
         lines = self.construct_lines("---\nfoo: bar\n---\nblub")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = ['foo: bar\n']
         self.assertEqual(result, expected)
 
     def test_get_yaml_lines_2(self):
         lines = self.construct_lines("\n\n---\nfoo: bar\n---\n\nblub\n")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = ['foo: bar\n']
         self.assertEqual(result, expected)
 
     def test_get_yaml_lines_3(self):
         lines = self.construct_lines("\n\n---\nfoo: bar\n...\n\nblub\n")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = ['foo: bar\n']
         self.assertEqual(result, expected)
 
     def test_get_yaml_lines_4(self):
         lines = self.construct_lines("...\nfoo: bar\n...\nblub")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = []
         self.assertEqual(result, expected)
 
     def test_get_yaml_lines_5(self):
         lines = self.construct_lines("\n---\nfoo: bar\n...\n\n---\nfoo: bar\n...\n")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = ['foo: bar\n', 'foo: bar\n']
         self.assertEqual(result, expected)
 
     def test_get_yaml_lines_6(self):
         lines = self.construct_lines("\n---\nfoo: bar\n...\nasdlkaö sd\nasdasd asdasd\n---\nfoo: bar\n...\n")
-        result = panache.get_yaml_lines(lines)
+        result = get_yaml_lines(lines)
         expected = ['foo: bar\n', 'foo: bar\n']
         self.assertEqual(result, expected)
 
     def test_get_yaml_1(self):
-        result = panache.get_input_yaml(self.markdown)
+        result = get_input_yaml(self.markdown)
         self.assertTrue(result)
         self.assertTrue(STYLES_ in result)
         self.assertTrue('wiki' in result[STYLES_])
         self.assertEqual(result[STYLES_]['wiki'], 'tsihtml')
 
     def test_determine_style_1(self):
-        options, _, _ = panache.parse_cmdline(['--medium=wiki'])
-        data = panache.get_input_yaml(self.markdown)
-        result = panache.determine_style(options, data)
+        options, _, _ = parse_cmdline(['--medium=wiki'])
+        data = get_input_yaml(self.markdown)
+        result = determine_style(options, data)
         expected = 'tsihtml'
         self.assertEqual(result, expected)
 
     def test_determine_style_2(self):
-        options, _, _ = panache.parse_cmdline([])
-        data = panache.get_input_yaml(self.markdown)
-        result = panache.determine_style(options, data)
+        options, _, _ = parse_cmdline([])
+        data = get_input_yaml(self.markdown)
+        result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_3(self):
-        options, _, _ = panache.parse_cmdline(['--medium=pdf'])
-        data = panache.get_input_yaml(self.markdown)
-        result = panache.determine_style(options, data)
+        options, _, _ = parse_cmdline(['--medium=pdf'])
+        data = get_input_yaml(self.markdown)
+        result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_4(self):
-        options, _, _ = panache.parse_cmdline(['--medium=pdf'])
-        data = panache.get_input_yaml(self.markdown)
+        options, _, _ = parse_cmdline(['--medium=pdf'])
+        data = get_input_yaml(self.markdown)
         data[STYLE_] = 'pdf'
-        result = panache.determine_style(options, data)
+        result = determine_style(options, data)
         expected = 'pdf'
         self.assertEqual(result, expected)
 
@@ -171,7 +169,7 @@ class MyTestCase(unittest.TestCase):
     def test_panache_styles_update_1(self):
         panache_styles = PanacheStyles()
         panache_styles.load(self.style_dir)
-        input_yaml = panache.get_input_yaml(self.markdown)
+        input_yaml = get_input_yaml(self.markdown)
         style_name = 'html'
         self.assertEqual(panache_styles.styles[style_name].metadata['lang'], 'en')
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
@@ -181,7 +179,7 @@ class MyTestCase(unittest.TestCase):
     def test_panache_styles_resolve_1(self):
         panache_styles = PanacheStyles()
         panache_styles.load(self.style_dir)
-        input_yaml = panache.get_input_yaml(self.markdown)
+        input_yaml = get_input_yaml(self.markdown)
         style_name = 'html'
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         panache_styles.update(style)
@@ -190,30 +188,30 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_1(self):
-        options, args, _ = panache.parse_cmdline([])
+        options, args, _ = parse_cmdline([])
         panache_styles = PanacheStyles()
         panache_styles.load(self.style_dir)
-        input_yaml = panache.get_input_yaml(self.markdown)
+        input_yaml = get_input_yaml(self.markdown)
         style_name = 'html'
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         panache_styles.update(style)
         parameters = panache_styles.resolve(style_name)
-        result = panache.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
+        result = compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = ['pandoc', 'foo/metadata', self.markdown, '--toc']
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
         style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
-        options, args, style_vars_dict = panache.parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
+        options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
         panache_styles = PanacheStyles()
         panache_styles.load(options.style_dir)
-        input_yaml = panache.get_input_yaml(self.markdown)
-        style_name = panache.determine_style(options, input_yaml)
+        input_yaml = get_input_yaml(self.markdown)
+        style_name = determine_style(options, input_yaml)
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         panache_styles.update(style)
         parameters = panache_styles.resolve(style_name)
-        parameters = panache.substitute_style_vars(parameters, options, style_vars_dict)
-        result = panache.compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
+        parameters = substitute_style_vars(parameters, options, style_vars_dict)
+        result = compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
                     '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % style_dir}
         self.assertEqual(set(result), expected)

@@ -1,1 +1,1 @@
-__all__ = ['armor']
+__all__ = ['panache']
