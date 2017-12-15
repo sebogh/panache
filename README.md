@@ -100,21 +100,49 @@ panache, then `template` would be resolved to `/foo/wiki-de.html` (and as
 
 # Installation
 
-Requirements:
+## Options
+
+There are two options for using panache:
+
+-   running the Python source
+-   running a binary version
+
+Both options will be described below.
+
+## Python Source
+
+Make sure the following requirements are satisfied:
 
 -    [Pandoc] >= 2.0
--    [Python] >= 3.5 (inkl. `pip`)
+-    Python >= 3.4
+-    \[git\]
 
-````bash
-pip3 install git+https://github.com/sebogh/panache
-````
+Get `panache.py` by either:
+
+-   getting the latest release from the [releases page] or
+-   cloning the [github-repository]:
+
+    ~~~~ {.bash}
+    git clone https://github.com/sebogh/panache.git
+    ~~~~
+
+Run `panache.py`.
+
+## Binary 
+
+Make sure the following requirement is satisfied:
+
+-    [Pandoc] >= 2.0
+
+Dowload the latest binary from the [releases page] and run `panache.exe`
+(Windows) or `panache` (Linux).
 
 # Details
 
 tbd.
 
-
-[Pandoc]: https://pandoc.org/
-[Python]: https://www.python.org/downloads/
+[releases page]: https://github.com/sebogh/panache/releases
+[github-repository]: https://github.com/sebogh/panache.git
+[Pandoc]: https://pandoc.org
 [panzer]: https://github.com/msprev/panzer
 [Pandocomatic]: https://heerdebeer.org/Software/markdown/pandocomatic/
