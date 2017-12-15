@@ -23,9 +23,9 @@ from string import Template
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 
 # check script environment
-script = os.path.realpath(sys.argv[0])
+script = os.path.realpath(sys.argv[0]).replace(os.path.sep, '/')
 script_dir = os.path.dirname(script)
-base_dir = os.path.realpath(os.path.join(script_dir, ".."))
+base_dir = "%s/.." % script_dir
 script_base = os.path.basename(script)
 
 # panache-specific YAML words
@@ -205,7 +205,7 @@ class PanacheStyles:
         # merge styles
         commandline = merge_two_dicts(parent[COMMANDLINE_], style.commandline)
         metadata = merge_two_dicts(parent[METADATA_], style.metadata)
-        filters = list(filter(lambda x: x in style.filters_kill, parent[FILTER_] + style.filters_run))
+        filters = list(filter(lambda x: x not in style.filters_kill, parent[FILTER_] + style.filters_run))
 
         return {COMMANDLINE_: commandline, METADATA_: metadata, FILTER_: filters}
 
@@ -225,8 +225,10 @@ def parse_cmdline(cl):
     parser.add_option("--style", dest="style", default="")
     parser.add_option("--medium", dest="medium", default="")
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
+    parser.add_option("--dry", dest="dry", action="store_true", default=False)
     parser.add_option("--style-dir", dest="style_dir", default=default_style_dir)
     parser.add_option("--style-var", dest="style_vars", action="append", default=[])
+
 
     (options, args) = parser.parse_args(cl)
 
@@ -262,6 +264,8 @@ OPTIONS
         May be used several times.
     --debug
         Print the Pandoc command line to STDERR.
+    --dry
+        Only show, what would happen.        
     -h, --help
         Print this help message.
 
@@ -278,16 +282,16 @@ AUTHOR
 
     # path to the input- and output-file
     if options.input:
-        options.input = os.path.abspath(options.input)
+        options.input = os.path.abspath(options.input).replace(os.path.sep, '/')
         if not os.path.isfile(options.input):
             raise PanacheException("No such file '%s'." % options.input, 102)
 
     if options.output:
-        options.output = os.path.abspath(options.output)
+        options.output = os.path.abspath(options.output).replace(os.path.sep, '/')
 
     # check style-dir
     if options.style_dir:
-        options.style_dir = os.path.abspath(options.style_dir)
+        options.style_dir = os.path.abspath(options.style_dir).replace(os.path.sep, '/')
         if not os.path.isdir(options.style_dir):
             raise PanacheException("No such directory '%s'." % options.style_dir, 103)
 
@@ -303,7 +307,6 @@ AUTHOR
         if not match:
             raise PanacheException("Invalid style variable '%s'." % style_var, 104)
         style_vars_dict[match.group(1)] = match.group(2)
-
 
     return options, args, style_vars_dict
 
@@ -396,36 +399,16 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
 
     command.extend(list(args))
 
-    # possibly print the command line
-    if options.debug:
-        sys.stderr.write("Running:\n  %s\n" % " ".join(command))
-        sys.stderr.flush()
-
     return command
 
 
-def add_special_meta(input_file, options, metadata):
-    input_file_dir = os.path.dirname(input_file)
-    input_file_basename = os.path.basename(input_file)
-    input_file_rootname, _ = os.path.splitext(input_file_basename)
-    metadata['date'] = "'%s'" % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    if options.style_dir:
-        metadata['staticDir'] = "'%s'" % options.style_dir.replace('\\', '/')
-    if options.input:
-        metadata['source_path'] = "'%s'" % input_file_dir
-        metadata['source'] = "'%s'" % input_file_basename
-        metadata['rootname'] = "'%s'" % input_file_rootname
-
-    return metadata
-
-
-def substitute_style_vars(parameters, options, style_vars_dict):
+def substitute_style_vars_and_append_default(parameters, options, style_vars_dict):
 
     # default style variables
     mapping = {
         'style_dir': options.style_dir,
         'panache_dir': script_dir,
-        'build_date': "'%s'" % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
         'input_basename': '',
         'input_basename_root': '',
@@ -435,7 +418,7 @@ def substitute_style_vars(parameters, options, style_vars_dict):
     if options.input:
         input_dir = os.path.dirname(options.input)
         input_basename = os.path.basename(options.input)
-        input_basename_root, input_basename_extension = os.path.splittext(input_basename)
+        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
         inputs_dict = {
             'input_dir': input_dir,
             'input_basename': input_basename,
@@ -451,6 +434,10 @@ def substitute_style_vars(parameters, options, style_vars_dict):
     template = Template(yaml_dump)
     substituted = template.safe_substitute(mapping)
     yaml_load = yaml.load(substituted)
+
+    # append the default style variables to metadata
+    yaml_load[METADATA_] = merge_two_dicts(mapping, yaml_load[METADATA_])
+
     return yaml_load
 
 
@@ -471,7 +458,7 @@ def main():
         if not options.input:
             with tempfile.NamedTemporaryFile(delete=False) as f:
                 f.write(sys.stdin.buffer.read())
-                input_file = f.name
+                input_file = f.name.replace(os.path.sep, '/')
 
         # load YAML from input (either the temporary file or the one name on the command line)
         input_yaml = get_input_yaml(input_file)
@@ -488,21 +475,33 @@ def main():
         parameters = panache_styles.resolve(style)
 
         # substitute variables in the resolved style
-        parameters = substitute_style_vars(parameters, options, style_vars_dict)
+        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            f.write("---\n".encode())
-            f.write(yaml.dump(parameters[METADATA_], encoding='utf-8'))
-            f.write("---\n".encode())
-            metadata_file = f.name
+            f.write(yaml.dump(parameters[METADATA_],
+                              default_flow_style=False,
+                              encoding='utf-8',
+                              explicit_start=True,
+                              explicit_end=True))
+            metadata_file = f.name.replace(os.path.sep, '/')
+
+        # compile the command
+        command = compile_command_line(input_file, metadata_file, parameters, options, args)
+
+        # print debug info
+        if options.debug:
+            if options.input:
+                sys.stderr.write("Changing working to:\n  %s\n" % os.path.dirname(options.input))
+            sys.stderr.write("Running:\n  %s\n" % " ".join(command))
+            sys.stderr.write("With %s beeing:\n" % metadata_file)
+            with open(metadata_file, 'r') as f:
+                sys.stderr.write('  ' + '  '.join(f.readlines()))
+            sys.stderr.flush()
 
         # change to the directory containing the input, if not STDIN
         if options.input:
             os.chdir(os.path.dirname(options.input))
-
-        # compile the command
-        command = compile_command_line(input_file, metadata_file, parameters, options, args)
 
         # run the command
         process = Popen(command, stdout=sys.stdout, stderr=sys.stderr)

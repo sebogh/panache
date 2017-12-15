@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from src.panache import STYLE_, STYLEDEF_, STYLES_, PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
     parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
-    substitute_style_vars
+    substitute_style_vars_and_append_default
 
 
 class MyTestCase(unittest.TestCase):
@@ -204,7 +204,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
-        style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+        style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources').replace(os.path.sep, '/')
         options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
         panache_styles = PanacheStyles()
         panache_styles.load(options.style_dir)
@@ -213,7 +213,7 @@ class MyTestCase(unittest.TestCase):
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
         panache_styles.update(style)
         parameters = panache_styles.resolve(style_name)
-        parameters = substitute_style_vars(parameters, options, style_vars_dict)
+        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
         result = compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
                     '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % style_dir}
