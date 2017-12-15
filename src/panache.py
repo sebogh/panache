@@ -18,7 +18,6 @@ import yaml
 import logging
 from datetime import datetime
 from subprocess import Popen
-from typing import List, Dict
 from string import Template
 
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
@@ -52,11 +51,16 @@ panache_yaml_format_variables = {
     'KILL_': KILL_
 }
 
+# https://stackoverflow.com/a/26853961
+def merge_two_dicts(x, y):
+    z = x.copy()       
+    z.update(y)    
+    return z
+        
 
+# https://stackoverflow.com/a/9307174
 class PassThroughOptionParser(OptionParser):
     """
-    see: https://stackoverflow.com/a/9307174
-
     An unknown option pass-through implementation of OptionParser.
 
     When unknown arguments are encountered, bundle with largs and try again,
@@ -74,13 +78,13 @@ class PassThroughOptionParser(OptionParser):
 
 class PanacheException(Exception):
 
-    def __init__(self, message: str, code: int = 0):
+    def __init__(self, message, code = 0):
         self.code = code
         self.message = message
 
 class PanacheStyle:
 
-    def __init__(self, name: str, data: Dict = None, source: str = None):
+    def __init__(self, name, data = None, source = None):
 
         # style name
         assert name
@@ -179,8 +183,8 @@ class PanacheStyles:
             logging.info("Merging definition of style '%s' (found in '%s')." % (style_name, path))
 
             style.parent = update.parent
-            style.commandline = {**style.commandline, **update.commandline}
-            style.metadata = {**style.metadata, **update.metadata}
+            style.commandline = merge_two_dicts(style.commandline, update.commandline)
+            style.metadata = merge_two_dicts(style.metadata, update.metadata)
             style.filters_run = style.filters_run + update.filters_run
             style.filters_kill = style.filters_run + update.filters_kill
 
@@ -199,13 +203,13 @@ class PanacheStyles:
         parent = self.resolve(style.parent)
 
         # merge styles
-        commandline = {**parent[COMMANDLINE_], **style.commandline}
-        metadata = {**parent[METADATA_], **style.metadata}
+        commandline = merge_two_dicts(parent[COMMANDLINE_], style.commandline)
+        metadata = merge_two_dicts(parent[METADATA_], style.metadata)
         filters = list(filter(lambda x: x in style.filters_kill, parent[FILTER_] + style.filters_run))
 
         return {COMMANDLINE_: commandline, METADATA_: metadata, FILTER_: filters}
 
-def parse_cmdline(cl: List[str]):
+def parse_cmdline(cl):
     """Parse and validate the command line.
     """
 
@@ -438,10 +442,10 @@ def substitute_style_vars(parameters, options, style_vars_dict):
             'input_basename_root': input_basename_root,
             'input_basename_extension': input_basename_extension,
         }
-        mapping = {**mapping, **inputs_dict}
+        mapping = merge_two_dicts(mapping, inputs_dict)
 
     # add style variables from the command line
-    mapping = {**mapping, **style_vars_dict}
+    mapping = merge_two_dicts(mapping, style_vars_dict)
 
     yaml_dump = yaml.dump(parameters)
     template = Template(yaml_dump)
