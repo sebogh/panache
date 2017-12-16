@@ -21,7 +21,7 @@ Often a Markdown document is the source for different targets. For example a
 single document may be converted to HTML as part of a Wiki, a standalone HTML file
 may be used locally, and a standalone and self-contained HTML-file may be send to
 a friend. At the same time, all version should be rendered using the private
-style (not the company one).
+style (as oposed to say a company style).
 
 To address this situation, panache allows documents to specify multiple styles,
 which get selected depending on a commandline option.
@@ -38,9 +38,9 @@ styles_:
 ```
 
 Depending on the command line option `--medium`, panache would select either the
-`privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would compute
-the commandline, filters and metadata for the selected style and finally call
-Pandoc.
+`privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would then 
+compute the commandline, filters and metadata for the selected style and finally 
+call Pandoc.
 
 ## Cascading Style Definition
 
@@ -71,7 +71,7 @@ germanwikihtml:
 ---
 ```
 
-to the `styledef_` above or by adding it to a separate `styledef_` in another
+to the previous `styledef_` or by adding it to a separate `styledef_` in another
 file.
 
 ## Style Variables
