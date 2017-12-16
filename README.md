@@ -1,4 +1,4 @@
-# panache
+# panache ![buil-status](https://travis-ci.org/sebogh/panache.svg?branch=master)
 
 ## Overview
 
