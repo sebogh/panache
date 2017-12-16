@@ -9,8 +9,7 @@ venv:
 	( \
 		virtualenv -p /usr/bin/python3 venv; \
 		source venv/bin/activate; \
-		pip install pyyaml; \
-		pip install pyinstaller; \
+		pip install -r requirements.txt; 
 	)
 
 test: venv
