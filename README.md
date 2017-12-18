@@ -1,6 +1,6 @@
 # panache 
 
-![buil-status](https://travis-ci.org/sebogh/panache.svg?branch=master)
+[![buil-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache)
 
 ## Overview
 
