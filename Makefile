@@ -9,7 +9,7 @@ venv:
 	( \
 		virtualenv -p /usr/bin/python3 venv; \
 		source venv/bin/activate; \
-		pip install -r requirements.txt; 
+		pip install -r requirements.txt; \
 	)
 
 test: venv
@@ -26,11 +26,12 @@ dist/panache: venv src/panache.py
 		source venv/bin/activate; \
 		pyinstaller -p . --onefile src/panache.py --distpath=dist; \
 		chmod 755 dist/panache; \
-	\)
+	)
 
 clean:
 	rm -Rf panache.spec build __pycache__
 
 tidy: clean
 	rm -Rf dist
+
 
