@@ -1,0 +1,18 @@
+styledef_:
+    html:
+        metadata:
+            lang: de
+        commandline:
+            toc: true
+    en_html:
+        metadata:
+            lang: en
+    wikihtml:
+        commandline:
+          html-q-tags: true
+          smart: true
+          number-sections: true
+          toc: true
+          toc-depth: 3
+          highlight-style: tango
+          template: ${style_dir}/template-html.html

@@ -1,87 +1,27 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import logging
 import os
 import re
 import sys
-import tempfile
 import unittest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+script_dir = os.path.abspath(os.path.dirname(__file__)).replace(os.path.sep, '/')
+base_dir = os.path.abspath(os.path.join(script_dir, '..')).replace(os.path.sep, '/')
+resource_dir = '%s/resources' % script_dir
+sample_markdown_file = '%s/sample.md' % resource_dir
 
-from src.panache import STYLE_, STYLEDEF_, STYLES_, PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
+sys.path.insert(1, base_dir)
+
+from src.panache import \
+    COMMANDLINE_, FILTER_, METADATA_, STYLE_, STYLEDEF_, STYLES_, \
+    PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
     parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
     substitute_style_vars_and_append_default
 
 
-class MyTestCase(unittest.TestCase):
-
-    def setUp(self):
-
-        logging.getLogger().setLevel(logging.ERROR)
-
-        self.style_dir = tempfile.mkdtemp()
-
-        # create a temporary styles definition file
-        stylesdef_txt = """
-{STYLEDEF_}:
-    html:
-        {METADATA_}:
-            lang: de
-        {COMMANDLINE_}:
-            toc: true
-    en_html:
-        {METADATA_}:
-            lang: en
-""".format(**panache_yaml_format_variables)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="2", suffix=".yaml", dir=self.style_dir) as f:
-            f.writelines(stylesdef_txt)
-            self.stylesdef_1 = f.name
-
-        # create a temporary styles definition file
-        stylesdef_txt = """
-{STYLEDEF_}:        
-    html:
-        {METADATA_}:
-            lang: en
-            foo: bar
-        {COMMANDLINE_}:
-            toc: true
-    it_html:
-        {PARENT_}: html
-        {METADATA_}:
-            lang: it
-""".format(**panache_yaml_format_variables)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="1", suffix=".yaml", dir=self.style_dir) as f:
-            f.writelines(stylesdef_txt)
-            self.stylesdef_2 = f.name
-
-        # create a temporary markdown file
-        markdown = """
----
-{STYLES_}:
-    wiki: tsihtml
-{STYLEDEF_}:        
-    html:
-        {METADATA_}:
-            lang: ru 
-    tsihtml:
-        {COMMANDLINE_}:
-            toc: false
----
-
-# Header 1
-
-## Header 2
-""".format(**panache_yaml_format_variables)
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-            f.write(markdown)
-            self.markdown = f.name
-
-    def tearDown(self):
-        os.remove(self.stylesdef_1)
-        os.remove(self.stylesdef_2)
-        os.remove(self.markdown)
+class SimpleTestCase(unittest.TestCase):
 
     @staticmethod
     def construct_lines(txt):
@@ -124,40 +64,49 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_get_yaml_1(self):
-        result = get_input_yaml(self.markdown)
+        result = get_input_yaml(sample_markdown_file)
         self.assertTrue(result)
         self.assertTrue(STYLES_ in result)
         self.assertTrue('wiki' in result[STYLES_])
-        self.assertEqual(result[STYLES_]['wiki'], 'tsihtml')
+        self.assertEqual(result[STYLES_]['wiki'], 'wikihtml')
 
     def test_determine_style_1(self):
         options, _, _ = parse_cmdline(['--medium=wiki'])
-        data = get_input_yaml(self.markdown)
+        data = get_input_yaml(sample_markdown_file)
         result = determine_style(options, data)
-        expected = 'tsihtml'
+        expected = 'wikihtml'
         self.assertEqual(result, expected)
 
     def test_determine_style_2(self):
         options, _, _ = parse_cmdline([])
-        data = get_input_yaml(self.markdown)
+        data = get_input_yaml(sample_markdown_file)
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_3(self):
         options, _, _ = parse_cmdline(['--medium=pdf'])
-        data = get_input_yaml(self.markdown)
+        data = get_input_yaml(sample_markdown_file)
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_4(self):
         options, _, _ = parse_cmdline(['--medium=pdf'])
-        data = get_input_yaml(self.markdown)
+        data = get_input_yaml(sample_markdown_file)
         data[STYLE_] = 'pdf'
         result = determine_style(options, data)
         expected = 'pdf'
         self.assertEqual(result, expected)
+
+
+
+class AdvancedTestCase(unittest.TestCase):
+
+
+    def setUp(self):
+        logging.getLogger().setLevel(logging.ERROR)
+
 
     def test_panache_styles_load_1(self):
         panache_styles = PanacheStyles()
@@ -165,58 +114,57 @@ class MyTestCase(unittest.TestCase):
 
     def test_panache_styles_load_2(self):
         panache_styles = PanacheStyles()
-        panache_styles.load(self.style_dir)
-        self.assertEqual(len(panache_styles.styles), 3)
-        self.assertEqual(set(panache_styles.styles.keys()), {'html', 'en_html', 'it_html'})
+        panache_styles.load(resource_dir)
+        self.assertEqual(len(panache_styles.styles), 4)
+        self.assertEqual(set(panache_styles.styles.keys()), {'html', 'en_html', 'it_html', 'wikihtml'})
 
     def test_panache_styles_update_1(self):
         panache_styles = PanacheStyles()
-        panache_styles.load(self.style_dir)
-        input_yaml = get_input_yaml(self.markdown)
+        panache_styles.load(resource_dir)
+        input_yaml = get_input_yaml(sample_markdown_file)
         style_name = 'html'
-        self.assertEqual(panache_styles.styles[style_name].metadata['lang'], 'en')
-        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
         self.assertEqual(panache_styles.styles[style_name].metadata['lang'], 'ru')
 
     def test_panache_styles_resolve_1(self):
         panache_styles = PanacheStyles()
-        panache_styles.load(self.style_dir)
-        input_yaml = get_input_yaml(self.markdown)
+        panache_styles.load(resource_dir)
+        input_yaml = get_input_yaml(sample_markdown_file)
         style_name = 'html'
-        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
-        expected = {'filter': [], 'metadata': {'lang': 'ru', 'foo': 'bar'}, 'commandline': {'toc': True}}
         result = panache_styles.resolve(style_name)
-        self.assertEqual(result, expected)
+        self.assertEqual(result[COMMANDLINE_], {'toc': True})
+        self.assertEqual(result[FILTER_], [])
+        self.assertEqual(result[METADATA_], {'lang': 'ru'})
+
 
     def testcompile_command_line_1(self):
         options, args, _ = parse_cmdline([])
         panache_styles = PanacheStyles()
-        panache_styles.load(self.style_dir)
-        input_yaml = get_input_yaml(self.markdown)
+        panache_styles.load(resource_dir)
+        input_yaml = get_input_yaml(sample_markdown_file)
         style_name = 'html'
-        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
+        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
         parameters = panache_styles.resolve(style_name)
-        result = compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
-        expected = ['pandoc', 'foo/metadata', self.markdown, '--toc']
+        result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
+        expected = ['pandoc', 'foo/metadata', sample_markdown_file, '--toc']
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
-        style_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources').replace(os.path.sep, '/')
-        options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % style_dir, '--medium=wiki'])
+        options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
         panache_styles = PanacheStyles()
         panache_styles.load(options.style_dir)
-        input_yaml = get_input_yaml(self.markdown)
+        input_yaml = get_input_yaml(sample_markdown_file)
         style_name = determine_style(options, input_yaml)
-        style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], self.markdown)
-        panache_styles.update(style)
+        self.assertEqual(style_name, 'wikihtml')
         parameters = panache_styles.resolve(style_name)
         parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
-        result = compile_command_line(self.markdown, 'foo/metadata', parameters, options, args)
-        expected = {'pandoc', 'foo/metadata', self.markdown, '--toc-depth=3', '--number-sections',
-                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % style_dir}
+        result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
+        expected = {'pandoc', 'foo/metadata', sample_markdown_file, '--toc', '--toc-depth=3', '--number-sections',
+                    '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % resource_dir}
         self.assertEqual(set(result), expected)
 
 if __name__ == '__main__':

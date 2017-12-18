@@ -132,8 +132,10 @@ class PanacheStyles:
 
     def load(self, style_dir):
 
+        yaml_paths = glob.glob(os.path.join(style_dir, '*.yaml'))
+
         # for each '*.yaml'-file in the data directory
-        for path in glob.glob(os.path.join(style_dir, '*.yaml')):
+        for path in sorted(yaml_paths):
 
             with open(path, 'r', encoding='utf-8') as f:
 
@@ -367,14 +369,20 @@ def determine_style(options, input_yaml):
     """
 
     # a style named on the command line has highest priority
-    if options.style:
+    if options and options.style:
         return options.style
+
     # if there is no style named on the command line a style named in the input would be used
-    if STYLE_ in input_yaml:
+    if input_yaml and STYLE_ in input_yaml:
         return input_yaml[STYLE_]
     # if there is no style named on the command line nor in the input a "medium" -> "style" match would be used
-    if options.medium and STYLES_ in input_yaml and options.medium in input_yaml[STYLES_]:
+    if (options
+        and input_yaml
+        and options.medium
+        and STYLES_ in input_yaml
+        and options.medium in input_yaml[STYLES_]):
         return input_yaml[STYLES_][options.medium]
+
     return None
 
 

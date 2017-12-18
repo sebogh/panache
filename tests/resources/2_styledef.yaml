@@ -1,0 +1,12 @@
+styledef_:
+    html:
+        metadata:
+            lang: en
+            foo: bar
+        commandline:
+            toc: true
+    it_html:
+        parent: html
+        metadata:
+            lang: it
+    wikihtml:
