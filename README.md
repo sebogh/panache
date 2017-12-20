@@ -116,7 +116,7 @@ Both options will be described below.
 Make sure the following requirements are satisfied:
 
 -    [Pandoc] >= 2.0
--    Python >= 3.4
+-    Python >= 3.4 (incl. pyyaml)
 -    \[git\]
 
 Get `panache.py` by either:
