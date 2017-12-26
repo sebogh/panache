@@ -118,6 +118,7 @@ Make sure the following requirements are satisfied:
 -    [Pandoc] >= 2.0
 -    Python >= 3.4 (incl. pyyaml)
 -    \[git\]
+-    \[virtualenv\]
 
 Get `panache.py` by either:
 
