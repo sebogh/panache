@@ -93,3 +93,6 @@ ENV/
 .idea
 
 \#*\#
+
+# ignore the bins
+bin/
