@@ -35,7 +35,7 @@ venv\Scripts\python.exe tests\test_panache.py
 GOTO :eof
 
 :DIST
-venv\Scripts\pyinstaller -p . --onefile src\panache.py --distpath=dist
+venv\Scripts\pyinstaller -p . --onefile src\panache.py --distpath=bin
 GOTO :eof
 
 :CLEAN
@@ -45,7 +45,7 @@ rmdir /Q /S __pycache__
 GOTO :eof
 
 :TIDY
-rmdir /Q /S dist
+rmdir /Q /S bin/panache.exe
 GOTO :eof
 
 

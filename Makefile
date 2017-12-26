@@ -19,19 +19,19 @@ test: venv
 	)
 
 
-dist: dist/panache
+dist: bin/panache
 
-dist/panache: venv src/panache.py
+bin/panache: venv src/panache.py
 	( \
 		source venv/bin/activate; \
-		pyinstaller -p . --onefile src/panache.py --distpath=dist; \
-		chmod 755 dist/panache; \
+		pyinstaller -p . --onefile src/panache.py --distpath=bin; \
+		chmod 755 bin/panache; \
 	)
 
 clean:
 	rm -Rf panache.spec build __pycache__
 
 tidy: clean
-	rm -Rf dist
+	rm -Rf bin/panache
 
 
