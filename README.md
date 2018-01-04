@@ -69,7 +69,7 @@ A second derived style, that changes the template, may be defined by adding:
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: /home/sebastian/templates/wiki-de.html
+      template: /home/sebastian/pandoc-templates/templates/wiki-de.html
 ---
 ```
 
@@ -78,7 +78,7 @@ file.
 
 ## Style Variables
 
-Obviously, the style definitions may work for the user `sebastian` but are
+Obviously, the style definitions above may work for the user `sebastian` but are
 likely to produce unexpected results for a different user. That is where style
 variables may be handy.
 
@@ -93,13 +93,17 @@ rewritten as follows:
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: {{foo}}/wiki-de.html
+      template: {{home}}/pandoc-templates/wiki-de.html
 ---
 ```
 
-Then, if (for example) `--style-var=foo:/bar` would be passed to
-panache, then `template` would be resolved to `/bar/wiki-de.html` (and as
-`--template=/bar/wiki-de.html` passed to Pandoc).
+Now, if `--style-var=home:/home/sebastian` would be passed to
+panache, then `template` would be resolved to 
+`/home/sebastian/pandoc-templates/wiki-de.html` (and as `--template=/home/sebastian/pandoc-templates/wiki-de.html`
+passed to Pandoc). Obviously, using `--style-var=home:~` makes the panache call
+user agnostic (in Bash).
+
+Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html) one may express conditions and repetitions.
 
 # Installation
 
