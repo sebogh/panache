@@ -19,9 +19,6 @@ import logging
 import pystache
 from datetime import datetime
 from subprocess import Popen
-from string import Template
-
-
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 
 # check script environment
@@ -33,7 +30,6 @@ script_base = os.path.basename(script)
 # panache-specific YAML words
 STYLEDEF_ = 'styledef_'
 STYLES_ = 'styles_'
-STYLE_ = 'style_'
 PARENT_ = 'parent'
 COMMANDLINE_ = 'commandline'
 METADATA_ = 'metadata'
@@ -44,7 +40,6 @@ KILL_ = 'kill'
 panache_yaml_format_variables = {
     'STYLEDEF_': STYLEDEF_,
     'STYLES_': STYLES_,
-    'STYLE_': STYLE_,
     'PARENT_': PARENT_,
     'COMMANDLINE_': COMMANDLINE_,
     'METADATA_': METADATA_,
@@ -449,10 +444,7 @@ def determine_style(options, input_yaml):
     if options and options.style:
         return options.style
 
-    # if there is no style named on the command line a style named in the input would be used
-    if input_yaml and STYLE_ in input_yaml:
-        return input_yaml[STYLE_]
-    # if there is no style named on the command line nor in the input a "medium" -> "style" match would be used
+    # if there is no style named on the command line a "medium" -> "style" match would be used if available
     if (options
         and input_yaml
         and options.medium

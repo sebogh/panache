@@ -15,7 +15,7 @@ sample_markdown_file = '%s/sample.md' % resource_dir
 sys.path.insert(1, base_dir)
 
 from src.panache import \
-    COMMANDLINE_, FILTER_, METADATA_, STYLE_, STYLEDEF_, STYLES_, \
+    COMMANDLINE_, FILTER_, METADATA_, STYLEDEF_, STYLES_, \
     PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
     parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
     substitute_style_vars_and_append_default
@@ -113,15 +113,6 @@ class SimpleTestCase(unittest.TestCase):
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
-
-    def test_determine_style_4(self):
-        options, _, _ = parse_cmdline(['--medium=pdf'])
-        data = get_input_yaml(sample_markdown_file)
-        data[STYLE_] = 'pdf'
-        result = determine_style(options, data)
-        expected = 'pdf'
-        self.assertEqual(result, expected)
-
 
 
 class AdvancedTestCase(unittest.TestCase):
