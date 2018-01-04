@@ -97,7 +97,7 @@ germanwikihtml:
 ---
 ```
 
-Now, if (for example) `--style-var=foo:/home/sebastian` would be passed to
+Now, if `--style-var=foo:/home/sebastian` would be passed to
 panache, then `template` would be resolved to 
 `/home/sebastian/wiki-de.html` (and as `--template=/home/sebastian/wiki-de.html`
 passed to Pandoc). Obviously, using `--style-var=foo:~` makes the panache call
