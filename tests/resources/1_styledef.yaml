@@ -9,10 +9,15 @@ styledef_:
             lang: en
     wikihtml:
         commandline:
-          html-q-tags: true
-          smart: true
-          number-sections: true
-          toc: true
-          toc-depth: 3
-          highlight-style: tango
-          template: ${style_dir}/template-html.html
+            html-q-tags: true
+            smart: true
+            number-sections: true
+            toc: true
+            toc-depth: 3
+            highlight-style: tango
+            {{#style_dir}}
+            template: {{style_dir}}/template-html.html
+            {{/style_dir}}
+            {{#style_dir_na}}
+            template2: {{style_dir}}/template-html.html
+            {{/style_dir_na}}

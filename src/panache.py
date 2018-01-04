@@ -16,9 +16,11 @@ import re
 import glob
 import yaml
 import logging
+import pystache
 from datetime import datetime
 from subprocess import Popen
 from string import Template
+
 
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 
@@ -127,8 +129,9 @@ class PanacheStyle:
 
 class PanacheStyles:
 
-    def __init__(self):
+    def __init__(self, style_vars = {}):
         self.styles = dict()
+        self.style_vars = style_vars
 
     def load(self, style_dir):
 
@@ -142,8 +145,14 @@ class PanacheStyles:
                 # try to load YAML-data from file
                 try:
 
+                    # read the file
+                    content = f.read()
+
+                    # render content (apply substitutions)
+                    rendered_content = pystache.render(content, self.style_vars)
+
                     # load YAML-data
-                    data = yaml.load(f)
+                    data = yaml.load(rendered_content)
 
                     # if YAML contains style definitions
                     if STYLEDEF_ in data:
@@ -210,6 +219,37 @@ class PanacheStyles:
         filters = list(filter(lambda x: x not in style.filters_kill, parent[FILTER_] + style.filters_run))
 
         return {COMMANDLINE_: commandline, METADATA_: metadata, FILTER_: filters}
+
+
+def compile_style_vars(options, style_vars_dict):
+
+    # default style variables
+    mapping = {
+        'style_dir': options.style_dir,
+        'panache_dir': script_dir,
+        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'input_dir': '',
+        'input_basename': '',
+        'input_basename_root': '',
+        'input_basename_extension': '',
+    }
+
+    if options.input:
+        input_dir = os.path.dirname(options.input)
+        input_basename = os.path.basename(options.input)
+        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
+        inputs_dict = {
+            'input_dir': input_dir,
+            'input_basename': input_basename,
+            'input_basename_root': input_basename_root,
+            'input_basename_extension': input_basename_extension,
+        }
+        mapping = merge_two_dicts(mapping, inputs_dict)
+
+    # add style variables from the command line
+    mapping = merge_two_dicts(mapping, style_vars_dict)
+
+    return mapping
 
 def parse_cmdline(cl):
     """Parse and validate the command line.
@@ -300,17 +340,38 @@ AUTHOR
     if options.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    # default style variables
+    style_vars = {
+        'style_dir': options.style_dir,
+        'panache_dir': script_dir,
+        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'input_dir': '',
+        'input_basename': '',
+        'input_basename_root': '',
+        'input_basename_extension': '',
+    }
+
+    # extend default style variables if we have an input
+    if options.input:
+        input_dir = os.path.dirname(options.input)
+        input_basename = os.path.basename(options.input)
+        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
+        style_vars['input_dir'] = input_dir
+        style_vars['input_basename'] = input_basename
+        style_vars['input_basename_root'] = input_basename_root
+        style_vars['input_basename_extension'] = input_basename_extension
+
+    # add style variables from the command line
     # style variables must follow the rules of template strings
     # see: https://docs.python.org/3.5/library/string.html#template-strings
     style_var_pattern = re.compile('^([a-z_]+):(.*)$', flags=0)
-    style_vars_dict = dict()
     for style_var in options.style_vars:
         match = style_var_pattern.match(style_var)
         if not match:
             raise PanacheException("Invalid style variable '%s'." % style_var, 104)
-        style_vars_dict[match.group(1)] = match.group(2)
+        style_vars[match.group(1)] = match.group(2)
 
-    return options, args, style_vars_dict
+    return options, args, style_vars
 
 
 # see: https://stackoverflow.com/a/10840586
@@ -347,7 +408,7 @@ def get_yaml_lines(lines: list):
     return yaml_lines
 
 
-def get_input_yaml(file):
+def get_input_yaml(file, style_vars = {}):
     """" Get YAML from a Pandoc-flavored Markdown file.
     """
 
@@ -360,8 +421,16 @@ def get_input_yaml(file):
     if not yaml_lines:
         return None
 
-    # load and return YAML data
-    return yaml.load(''.join(yaml_lines))
+    # read the file
+    content = ''.join(yaml_lines)
+
+    # render content (apply substitutions)
+    rendered_content = pystache.render(content, style_vars)
+
+    # load YAML-data
+    data = yaml.load(rendered_content)
+
+    return data
 
 
 def determine_style(options, input_yaml):
@@ -410,41 +479,14 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
     return command
 
 
-def substitute_style_vars_and_append_default(parameters, options, style_vars_dict):
-
-    # default style variables
-    mapping = {
-        'style_dir': options.style_dir,
-        'panache_dir': script_dir,
-        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'input_dir': '',
-        'input_basename': '',
-        'input_basename_root': '',
-        'input_basename_extension': '',
-    }
-
-    if options.input:
-        input_dir = os.path.dirname(options.input)
-        input_basename = os.path.basename(options.input)
-        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
-        inputs_dict = {
-            'input_dir': input_dir,
-            'input_basename': input_basename,
-            'input_basename_root': input_basename_root,
-            'input_basename_extension': input_basename_extension,
-        }
-        mapping = merge_two_dicts(mapping, inputs_dict)
-
-    # add style variables from the command line
-    mapping = merge_two_dicts(mapping, style_vars_dict)
+def substitute_style_vars_and_append_default(parameters, style_vars):
 
     yaml_dump = yaml.dump(parameters)
-    template = Template(yaml_dump)
-    substituted = template.safe_substitute(mapping)
+    substituted = pystache.render(yaml_dump, style_vars)
     yaml_load = yaml.load(substituted)
 
-    # append the default style variables to metadata
-    yaml_load[METADATA_] = merge_two_dicts(mapping, yaml_load[METADATA_])
+    # append the style variables to metadata
+    yaml_load[METADATA_] = merge_two_dicts(style_vars, yaml_load[METADATA_])
 
     return yaml_load
 
@@ -454,10 +496,10 @@ def main():
     try:
 
         # parse and validate command line
-        options, args, style_vars_dict = parse_cmdline(sys.argv[1:])
+        options, args, style_vars = parse_cmdline(sys.argv[1:])
 
         # initialize styles from the data directory
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles(style_vars)
         if options.style_dir:
             panache_styles.load(options.style_dir)
 
@@ -469,7 +511,7 @@ def main():
                 input_file = f.name.replace(os.path.sep, '/')
 
         # load YAML from input (either the temporary file or the one name on the command line)
-        input_yaml = get_input_yaml(input_file)
+        input_yaml = get_input_yaml(input_file, style_vars)
 
         # update (or add) style definitions based on definitions in the input file
         if input_yaml and STYLEDEF_ in input_yaml:
@@ -483,7 +525,7 @@ def main():
         parameters = panache_styles.resolve(style)
 
         # substitute variables in the resolved style
-        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
+        parameters = substitute_style_vars_and_append_default(parameters, style_vars)
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:

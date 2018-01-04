@@ -154,14 +154,13 @@ class AdvancedTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
-        options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
-        panache_styles = PanacheStyles()
+        options, args, style_vars = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
+        panache_styles = PanacheStyles(style_vars)
         panache_styles.load(options.style_dir)
         input_yaml = get_input_yaml(sample_markdown_file)
         style_name = determine_style(options, input_yaml)
         self.assertEqual(style_name, 'wikihtml')
         parameters = panache_styles.resolve(style_name)
-        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
         result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', sample_markdown_file, '--toc', '--toc-depth=3', '--number-sections',
                     '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % resource_dir}
