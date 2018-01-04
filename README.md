@@ -69,7 +69,7 @@ A second derived style, that changes the template, may be defined by adding:
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: /home/sebastian/templates/wiki-de.html
+      template: /home/sebastian/pandoc-templates/templates/wiki-de.html
 ---
 ```
 
@@ -93,14 +93,14 @@ rewritten as follows:
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: {{foo}}/wiki-de.html
+      template: {{home}}/pandoc-templates/wiki-de.html
 ---
 ```
 
-Now, if `--style-var=foo:/home/sebastian` would be passed to
+Now, if `--style-var=home:/home/sebastian` would be passed to
 panache, then `template` would be resolved to 
-`/home/sebastian/wiki-de.html` (and as `--template=/home/sebastian/wiki-de.html`
-passed to Pandoc). Obviously, using `--style-var=foo:~` makes the panache call
+`/home/sebastian/pandoc-templates/wiki-de.html` (and as `--template=/home/sebastian/pandoc-templates/wiki-de.html`
+passed to Pandoc). Obviously, using `--style-var=home:~` makes the panache call
 user agnostic (in Bash).
 
 # Installation
