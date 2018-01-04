@@ -70,6 +70,29 @@ class SimpleTestCase(unittest.TestCase):
         self.assertTrue('wiki' in result[STYLES_])
         self.assertEqual(result[STYLES_]['wiki'], 'wikihtml')
 
+    def test_parse_cmdline_1(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar'])
+        self.assertTrue('foo' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+
+    def test_parse_cmdline_2(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar', '--style-var=x:y'])
+        self.assertTrue('foo' in style_vars)
+        self.assertTrue('x' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+        self.assertEqual(style_vars['x'], 'y')
+
+    def test_parse_cmdline_3(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar', '--style-var=x:1', '--style-var=x:2'])
+        self.assertTrue('foo' in style_vars)
+        self.assertTrue('x' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+        self.assertEqual(style_vars['x'], ['1', '2'])
+
+    def test_parse_cmdline_4(self):
+        _, args, _ = parse_cmdline(['--style-var=foo:bar'])
+        self.assertFalse(args)
+
     def test_determine_style_1(self):
         options, _, _ = parse_cmdline(['--medium=wiki'])
         data = get_input_yaml(sample_markdown_file)

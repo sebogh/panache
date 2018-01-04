@@ -303,7 +303,8 @@ OPTIONS
         (Default: '{default_style_dir}'). 
     --style-var=<KEY>:<VALUE>    
         A variable that should be replaced in the style template.
-        May be used several times.
+        May be used several times. If the same key is used several 
+        times, then the variable is interpreted as list of values.
     --debug
         Print the Pandoc command line to STDERR.
     --dry
@@ -369,7 +370,14 @@ AUTHOR
         match = style_var_pattern.match(style_var)
         if not match:
             raise PanacheException("Invalid style variable '%s'." % style_var, 104)
-        style_vars[match.group(1)] = match.group(2)
+        key = match.group(1)
+        value =  match.group(2)
+        if key not in style_vars:
+            style_vars[key] = value
+        elif isinstance(style_vars[key], list):
+            style_vars[key].append(value)
+        else:
+            style_vars[key] = [style_vars[key], value]
 
     return options, args, style_vars
 
