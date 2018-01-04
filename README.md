@@ -78,7 +78,7 @@ file.
 
 ## Style Variables
 
-Obviously, the style definitions may work for the user `sebastian` but are
+Obviously, the style definitions above may work for the user `sebastian` but are
 likely to produce unexpected results for a different user. That is where style
 variables may be handy.
 
@@ -102,6 +102,8 @@ panache, then `template` would be resolved to
 `/home/sebastian/pandoc-templates/wiki-de.html` (and as `--template=/home/sebastian/pandoc-templates/wiki-de.html`
 passed to Pandoc). Obviously, using `--style-var=home:~` makes the panache call
 user agnostic (in Bash).
+
+Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html) one may express conditions and repetitions.
 
 # Installation
 
