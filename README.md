@@ -97,9 +97,10 @@ germanwikihtml:
 ---
 ```
 
-Then, if (for example) `--style-var=foo:/bar` would be passed to
-panache, then `template` would be resolved to `/bar/wiki-de.html` (and as
-`--template=/bar/wiki-de.html` passed to Pandoc).
+Then, if (for example) `--style-var=foo:/home/sebastian` would be passed to
+panache, then `template` would be resolved to `/home/sebastian/wiki-de.html` (and as
+`--template=/home/sebastian/wiki-de.html` passed to Pandoc). Obviously, using 
+`--style-var=foo:~` makes the panache call user agnostic (in Bash).
 
 # Installation
 
