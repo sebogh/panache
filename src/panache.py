@@ -27,6 +27,8 @@ script = os.path.realpath(sys.argv[0]).replace(os.path.sep, '/')
 script_dir = os.path.dirname(script)
 base_dir = "%s/.." % script_dir
 script_base = os.path.basename(script)
+user_home = os.path.expanduser("~")
+default_style_dir = "%s/.panache" % user_home
 
 # panache-specific YAML words
 STYLEDEF_ = 'styledef_'
@@ -50,6 +52,7 @@ panache_yaml_format_variables = {
     'RUN_': RUN_,
     'KILL_': KILL_
 }
+
 
 # https://stackoverflow.com/a/26853961
 def merge_two_dicts(x, y):
@@ -76,11 +79,13 @@ class PassThroughOptionParser(OptionParser):
             except (BadOptionError,AmbiguousOptionError) as e:
                 largs.append(e.opt_str)
 
+
 class PanacheException(Exception):
 
     def __init__(self, message, code = 0):
         self.code = code
         self.message = message
+
 
 class PanacheStyle:
 
@@ -211,13 +216,10 @@ class PanacheStyles:
 
         return {COMMANDLINE_: commandline, METADATA_: metadata, FILTER_: filters}
 
+
 def parse_cmdline(cl):
     """Parse and validate the command line.
     """
-
-    default_style_dir = base_dir
-    if not os.path.isdir(default_style_dir):
-        default_style_dir = None
 
     usage = "%s [<OPTIONS>] [<PANDOC-OPTIONS>]" % script_base
     parser = PassThroughOptionParser(usage, add_help_option=False)
@@ -227,10 +229,8 @@ def parse_cmdline(cl):
     parser.add_option("--style", dest="style", default="")
     parser.add_option("--medium", dest="medium", default="")
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
-    parser.add_option("--dry", dest="dry", action="store_true", default=False)
-    parser.add_option("--style-dir", dest="style_dir", default=default_style_dir)
+    parser.add_option("--style-dir", dest="style_dir")
     parser.add_option("--style-var", dest="style_vars", action="append", default=[])
-
 
     (options, args) = parser.parse_args(cl)
 
@@ -266,8 +266,6 @@ OPTIONS
         May be used several times.
     --debug
         Print the Pandoc command line to STDERR.
-    --dry
-        Only show, what would happen.        
     -h, --help
         Print this help message.
 
@@ -296,6 +294,8 @@ AUTHOR
         options.style_dir = os.path.abspath(options.style_dir).replace(os.path.sep, '/')
         if not os.path.isdir(options.style_dir):
             raise PanacheException("No such directory '%s'." % options.style_dir, 103)
+    elif os.path.isdir(default_style_dir):
+        options.style_dir = default_style_dir
 
     if options.debug:
         logging.getLogger().setLevel(logging.DEBUG)
