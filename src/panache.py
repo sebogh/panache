@@ -16,10 +16,9 @@ import re
 import glob
 import yaml
 import logging
+import pystache
 from datetime import datetime
 from subprocess import Popen
-from string import Template
-
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 
 # check script environment
@@ -30,10 +29,13 @@ script_base = os.path.basename(script)
 user_home = os.path.expanduser("~")
 default_style_dir = "%s/.panache" % user_home
 
+# setup logging
+logging.basicConfig(format="%(message)s")
+
+
 # panache-specific YAML words
 STYLEDEF_ = 'styledef_'
 STYLES_ = 'styles_'
-STYLE_ = 'style_'
 PARENT_ = 'parent'
 COMMANDLINE_ = 'commandline'
 METADATA_ = 'metadata'
@@ -44,7 +46,6 @@ KILL_ = 'kill'
 panache_yaml_format_variables = {
     'STYLEDEF_': STYLEDEF_,
     'STYLES_': STYLES_,
-    'STYLE_': STYLE_,
     'PARENT_': PARENT_,
     'COMMANDLINE_': COMMANDLINE_,
     'METADATA_': METADATA_,
@@ -132,8 +133,9 @@ class PanacheStyle:
 
 class PanacheStyles:
 
-    def __init__(self):
+    def __init__(self, style_vars = {}):
         self.styles = dict()
+        self.style_vars = style_vars
 
     def load(self, style_dir):
 
@@ -147,19 +149,27 @@ class PanacheStyles:
                 # try to load YAML-data from file
                 try:
 
+                    # read the file
+                    content = f.read()
+
+                    # render content (apply substitutions)
+                    rendered_content = pystache.render(content, self.style_vars)
+
                     # load YAML-data
-                    data = yaml.load(f)
+                    data = yaml.load(rendered_content)
 
                     # if YAML contains style definitions
                     if STYLEDEF_ in data:
+
+                        stylefile_basename = os.path.basename(path)
 
                         # add each new one
                         for style_name in data[STYLEDEF_]:
 
                             if style_name not in self.styles:
 
-                                logging.info("Adding definition of style '%s' (found in '%s')."
-                                             % (style_name, path))
+                                logging.debug("  Adding '%s' (found in '%s')."
+                                             % (style_name, stylefile_basename))
 
                                 self.styles[style_name] = \
                                     PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
@@ -167,7 +177,7 @@ class PanacheStyles:
                             else:
 
                                 logging.warning("Ignoring duplicate definition of '%s' (found in'%s')."
-                                                % (style_name, path))
+                                                % (style_name, stylefile_basename))
 
                 except Exception as e:
                     logging.warning(e)
@@ -177,17 +187,19 @@ class PanacheStyles:
 
         style_name = update.name
         path = update.source
+        stylefile_basename = os.path.basename(path)
 
         if style_name not in self.styles:
 
-            logging.info("Adding definition of style '%s' (found in '%s')." % (style_name, path))
+            logging.debug("  Adding '%s' (found in '%s')."
+                         % (style_name, stylefile_basename))
 
             self.styles[style_name] = update
 
         else:
             style = self.styles[style_name]
 
-            logging.info("Merging definition of style '%s' (found in '%s')." % (style_name, path))
+            logging.debug("  Merging '%s' (found in '%s')." % (style_name, stylefile_basename))
 
             style.parent = update.parent
             style.commandline = merge_two_dicts(style.commandline, update.commandline)
@@ -201,7 +213,7 @@ class PanacheStyles:
             return {COMMANDLINE_: dict(), METADATA_: dict(), FILTER_: list()}
 
         if style_name not in self.styles:
-            logging.warning("Unknown style '%s'" % style_name)
+            logging.warning("  Unknown style '%s'" % style_name)
             return {COMMANDLINE_: dict(), METADATA_: dict(), FILTER_: list()}
 
         style = self.styles[style_name]
@@ -229,6 +241,7 @@ def parse_cmdline(cl):
     parser.add_option("--style", dest="style", default="")
     parser.add_option("--medium", dest="medium", default="")
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
+    parser.add_option("--verbose", dest="verbose", action="store_true", default=False)
     parser.add_option("--style-dir", dest="style_dir")
     parser.add_option("--style-var", dest="style_vars", action="append", default=[])
 
@@ -259,13 +272,16 @@ OPTIONS
     --medium=<MEDIUM>
         The target medium.
     --style-dir=<PATH>
-        Where to find style definitions. 
+        Where to find style definitions.
         (Default: '{default_style_dir}'). 
     --style-var=<KEY>:<VALUE>    
         A variable that should be replaced in the style template.
-        May be used several times.
+        May be used several times. If the same key is used several 
+        times, then the variable is interpreted as list of values.
+    --verbose
+        Print verbose info (to STDERR).
     --debug
-        Print the Pandoc command line to STDERR.
+        Print all debug info (to STDERR).
     -h, --help
         Print this help message.
 
@@ -297,20 +313,51 @@ AUTHOR
     elif os.path.isdir(default_style_dir):
         options.style_dir = default_style_dir
 
+    if options.verbose:
+        logging.getLogger().setLevel(logging.INFO)
+
     if options.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    # default style variables
+    style_vars = {
+        'style_dir': options.style_dir,
+        'panache_dir': script_dir,
+        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'input_dir': '',
+        'input_basename': '',
+        'input_basename_root': '',
+        'input_basename_extension': '',
+    }
+
+    # extend default style variables if we have an input
+    if options.input:
+        input_dir = os.path.dirname(options.input)
+        input_basename = os.path.basename(options.input)
+        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
+        style_vars['input_dir'] = input_dir
+        style_vars['input_basename'] = input_basename
+        style_vars['input_basename_root'] = input_basename_root
+        style_vars['input_basename_extension'] = input_basename_extension
+
+    # add style variables from the command line
     # style variables must follow the rules of template strings
     # see: https://docs.python.org/3.5/library/string.html#template-strings
     style_var_pattern = re.compile('^([a-z_]+):(.*)$', flags=0)
-    style_vars_dict = dict()
     for style_var in options.style_vars:
         match = style_var_pattern.match(style_var)
         if not match:
             raise PanacheException("Invalid style variable '%s'." % style_var, 104)
-        style_vars_dict[match.group(1)] = match.group(2)
+        key = match.group(1)
+        value =  match.group(2)
+        if key not in style_vars:
+            style_vars[key] = value
+        elif isinstance(style_vars[key], list):
+            style_vars[key].append(value)
+        else:
+            style_vars[key] = [style_vars[key], value]
 
-    return options, args, style_vars_dict
+    return options, args, style_vars
 
 
 # see: https://stackoverflow.com/a/10840586
@@ -347,7 +394,7 @@ def get_yaml_lines(lines: list):
     return yaml_lines
 
 
-def get_input_yaml(file):
+def get_input_yaml(file, style_vars = {}):
     """" Get YAML from a Pandoc-flavored Markdown file.
     """
 
@@ -360,8 +407,16 @@ def get_input_yaml(file):
     if not yaml_lines:
         return None
 
-    # load and return YAML data
-    return yaml.load(''.join(yaml_lines))
+    # read the file
+    content = ''.join(yaml_lines)
+
+    # render content (apply substitutions)
+    rendered_content = pystache.render(content, style_vars)
+
+    # load YAML-data
+    data = yaml.load(rendered_content)
+
+    return data
 
 
 def determine_style(options, input_yaml):
@@ -372,10 +427,7 @@ def determine_style(options, input_yaml):
     if options and options.style:
         return options.style
 
-    # if there is no style named on the command line a style named in the input would be used
-    if input_yaml and STYLE_ in input_yaml:
-        return input_yaml[STYLE_]
-    # if there is no style named on the command line nor in the input a "medium" -> "style" match would be used
+    # if there is no style named on the command line a "medium" -> "style" match would be used if available
     if (options
         and input_yaml
         and options.medium
@@ -410,43 +462,16 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
     return command
 
 
-def substitute_style_vars_and_append_default(parameters, options, style_vars_dict):
-
-    # default style variables
-    mapping = {
-        'style_dir': options.style_dir,
-        'panache_dir': script_dir,
-        'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'input_dir': '',
-        'input_basename': '',
-        'input_basename_root': '',
-        'input_basename_extension': '',
-    }
-
-    if options.input:
-        input_dir = os.path.dirname(options.input)
-        input_basename = os.path.basename(options.input)
-        input_basename_root, input_basename_extension = os.path.splitext(input_basename)
-        inputs_dict = {
-            'input_dir': input_dir,
-            'input_basename': input_basename,
-            'input_basename_root': input_basename_root,
-            'input_basename_extension': input_basename_extension,
-        }
-        mapping = merge_two_dicts(mapping, inputs_dict)
-
-    # add style variables from the command line
-    mapping = merge_two_dicts(mapping, style_vars_dict)
-
-    yaml_dump = yaml.dump(parameters)
-    template = Template(yaml_dump)
-    substituted = template.safe_substitute(mapping)
-    yaml_load = yaml.load(substituted)
-
-    # append the default style variables to metadata
-    yaml_load[METADATA_] = merge_two_dicts(mapping, yaml_load[METADATA_])
-
-    return yaml_load
+# def substitute_style_vars_and_append_default(parameters, style_vars):
+#
+#     yaml_dump = yaml.dump(parameters)
+#     substituted = pystache.render(yaml_dump, style_vars)
+#     yaml_load = yaml.load(substituted)
+#
+#     # append the style variables to metadata
+#     yaml_load[METADATA_] = merge_two_dicts(style_vars, yaml_load[METADATA_])
+#
+#     return yaml_load
 
 
 def main():
@@ -454,11 +479,13 @@ def main():
     try:
 
         # parse and validate command line
-        options, args, style_vars_dict = parse_cmdline(sys.argv[1:])
+        options, args, style_vars = parse_cmdline(sys.argv[1:])
+        logging.debug("Parsed commandline.")
 
         # initialize styles from the data directory
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles(style_vars)
         if options.style_dir:
+            logging.debug("Loading styles:")
             panache_styles.load(options.style_dir)
 
         # copy STDIN to a temporary file, iff needed
@@ -467,51 +494,56 @@ def main():
             with tempfile.NamedTemporaryFile(delete=False) as f:
                 f.write(sys.stdin.buffer.read())
                 input_file = f.name.replace(os.path.sep, '/')
+                logging.debug("Copied STDIN to temp. file '%s'." % input_file)
 
         # load YAML from input (either the temporary file or the one name on the command line)
-        input_yaml = get_input_yaml(input_file)
+        input_yaml = get_input_yaml(input_file, style_vars)
 
         # update (or add) style definitions based on definitions in the input file
         if input_yaml and STYLEDEF_ in input_yaml:
-            for style_name in input_yaml[STYLEDEF_]:
-                panache_styles.update(PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], input_file))
+            if input_yaml[STYLEDEF_]:
+                logging.debug("Updating styles:")
+                for style_name in input_yaml[STYLEDEF_]:
+                    panache_styles.update(PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], input_file))
 
         # determine desired style
         style = determine_style(options, input_yaml)
+        if style:
+            logging.info("Computed style '%s'." % style)
+        else:
+            logging.info("Couldn't compute a style.")
+
 
         # resolve style to Pandoc compile parameters (and metadata)
         parameters = panache_styles.resolve(style)
+        logging.debug("Resolving style '%s'." % style)
 
-        # substitute variables in the resolved style
-        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
+        ## substitute variables in the resolved style
+        #parameters = substitute_style_vars_and_append_default(parameters, style_vars)
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            f.write(yaml.dump(parameters[METADATA_],
-                              default_flow_style=False,
-                              encoding='utf-8',
-                              explicit_start=True,
-                              explicit_end=True))
+            metadata = yaml.dump(parameters[METADATA_],
+                      default_flow_style=False,
+                      encoding='utf-8',
+                      explicit_start=True,
+                      explicit_end=True)
+            f.write(metadata)
             metadata_file = f.name.replace(os.path.sep, '/')
+            logging.info("Wrote following metadata to temp. file '%s'.\n  %s"
+                         % (metadata_file, metadata.decode().rstrip().replace("\n", "\n  ")))
 
         # compile the command
         command = compile_command_line(input_file, metadata_file, parameters, options, args)
 
-        # print debug info
-        if options.debug:
-            if options.input:
-                sys.stderr.write("Changing working to:\n  %s\n" % os.path.dirname(options.input))
-            sys.stderr.write("Running:\n  %s\n" % " ".join(command))
-            sys.stderr.write("With %s beeing:\n" % metadata_file)
-            with open(metadata_file, 'r') as f:
-                sys.stderr.write('  ' + '  '.join(f.readlines()))
-            sys.stderr.flush()
-
         # change to the directory containing the input, if not STDIN
         if options.input:
-            os.chdir(os.path.dirname(options.input))
+            working_directory = os.path.dirname(options.input)
+            logging.debug("Changing directory to '%s'." % working_directory)
+            os.chdir(working_directory)
 
         # run the command
+        logging.info("Running:\n  %s" % ' '.join(command))
         process = Popen(command, stdout=sys.stdout, stderr=sys.stderr)
         process.wait()
 

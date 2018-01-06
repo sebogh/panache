@@ -69,7 +69,7 @@ A second derived style, that changes the template, may be defined by adding:
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: /home/sebastian/templates/wiki-de.html
+      template: /home/sebastian/pandoc-templates/templates/wiki-de.html
 ---
 ```
 
@@ -78,27 +78,32 @@ file.
 
 ## Style Variables
 
-Obviously, the style definitions may work for the user `sebastian` but are
+Obviously, the style definitions above may work for the user `sebastian` but are
 likely to produce unexpected results for a different user. That is where style
 variables may be handy.
 
-panache allows to use variables in style definitions, wich are (as of
-"compiling" the final style) substituted based on commandline options. Using
-this, the above definition of the `germanwikihtml`-style may be rewritten as
-follows:
+panache uses [{{ mustache }}](https://github.com/mustache/mustache.github.com)
+as template engine. Through that, panache allows to use "tags" in style
+definitions, wich are substituted based on commandline options and some
+defaults. Using this, the above definition of the `germanwikihtml`-style may be
+rewritten as follows:
 
 ```yaml
 ---
 germanwikihtml:
   parent: wikihtml
   commandline:
-      template: ${template_dir}/wiki-de.html
+      template: {{home}}/pandoc-templates/wiki-de.html
 ---
 ```
 
-Then, if (for example) `--style-var=template_dir:/foo` would be passed to
-panache, then `template` would be resolved to `/foo/wiki-de.html` (and as
-`--template=/foo/wiki-de.html` passed to Pandoc).
+Now, if `--style-var=home:/home/sebastian` would be passed to
+panache, then `template` would be resolved to 
+`/home/sebastian/pandoc-templates/wiki-de.html` (and as `--template=/home/sebastian/pandoc-templates/wiki-de.html`
+passed to Pandoc). Obviously, using `--style-var=home:~` makes the panache call
+user agnostic (in Bash).
+
+Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html) one may express conditions and repetitions.
 
 # Installation
 
@@ -116,7 +121,7 @@ Both options will be described below.
 Make sure the following requirements are satisfied:
 
 -    [Pandoc] >= 2.0
--    Python >= 3.4 (incl. pyyaml)
+-    Python >= 3.4 (incl. pyyaml, pystache)
 -    \[git\]
 -    \[virtualenv\]
 

@@ -15,10 +15,9 @@ sample_markdown_file = '%s/sample.md' % resource_dir
 sys.path.insert(1, base_dir)
 
 from src.panache import \
-    COMMANDLINE_, FILTER_, METADATA_, STYLE_, STYLEDEF_, STYLES_, \
+    COMMANDLINE_, FILTER_, METADATA_, STYLEDEF_, STYLES_, \
     PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
-    parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, \
-    substitute_style_vars_and_append_default
+    parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line
 
 
 class SimpleTestCase(unittest.TestCase):
@@ -70,6 +69,29 @@ class SimpleTestCase(unittest.TestCase):
         self.assertTrue('wiki' in result[STYLES_])
         self.assertEqual(result[STYLES_]['wiki'], 'wikihtml')
 
+    def test_parse_cmdline_1(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar'])
+        self.assertTrue('foo' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+
+    def test_parse_cmdline_2(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar', '--style-var=x:y'])
+        self.assertTrue('foo' in style_vars)
+        self.assertTrue('x' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+        self.assertEqual(style_vars['x'], 'y')
+
+    def test_parse_cmdline_3(self):
+        _, _, style_vars = parse_cmdline(['--style-var=foo:bar', '--style-var=x:1', '--style-var=x:2'])
+        self.assertTrue('foo' in style_vars)
+        self.assertTrue('x' in style_vars)
+        self.assertEqual(style_vars['foo'], 'bar')
+        self.assertEqual(style_vars['x'], ['1', '2'])
+
+    def test_parse_cmdline_4(self):
+        _, args, _ = parse_cmdline(['--style-var=foo:bar'])
+        self.assertFalse(args)
+
     def test_determine_style_1(self):
         options, _, _ = parse_cmdline(['--medium=wiki'])
         data = get_input_yaml(sample_markdown_file)
@@ -90,15 +112,6 @@ class SimpleTestCase(unittest.TestCase):
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
-
-    def test_determine_style_4(self):
-        options, _, _ = parse_cmdline(['--medium=pdf'])
-        data = get_input_yaml(sample_markdown_file)
-        data[STYLE_] = 'pdf'
-        result = determine_style(options, data)
-        expected = 'pdf'
-        self.assertEqual(result, expected)
-
 
 
 class AdvancedTestCase(unittest.TestCase):
@@ -154,14 +167,13 @@ class AdvancedTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
-        options, args, style_vars_dict = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
-        panache_styles = PanacheStyles()
+        options, args, style_vars = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
+        panache_styles = PanacheStyles(style_vars)
         panache_styles.load(options.style_dir)
         input_yaml = get_input_yaml(sample_markdown_file)
         style_name = determine_style(options, input_yaml)
         self.assertEqual(style_name, 'wikihtml')
         parameters = panache_styles.resolve(style_name)
-        parameters = substitute_style_vars_and_append_default(parameters, options, style_vars_dict)
         result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
         expected = {'pandoc', 'foo/metadata', sample_markdown_file, '--toc', '--toc-depth=3', '--number-sections',
                     '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % resource_dir}
