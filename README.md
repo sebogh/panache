@@ -20,10 +20,10 @@ may specify multiple styles / context dependable styles.
 ## Context Dependable Styles
 
 Often a Markdown document is the source for different targets. For example a
-single document may be converted to HTML as part of a Wiki, a standalone HTML file
-may be used locally, and a standalone and self-contained HTML-file may be send to
-a friend. At the same time, all version should be rendered using the private
-style (as oposed to (for example) a company style).
+single document may be converted to HTML as part of a Wiki, a draft HTML file
+may be used while writing the document, and a standalone and self-contained
+HTML-file may be send to a friend. At the same time, all version should be
+rendered using the private style (as oposed to (for example) a company style).
 
 To address this situation, panache allows documents to specify multiple styles,
 which get selected depending on a commandline option.
@@ -39,7 +39,8 @@ styles_:
 ---
 ```
 
-Depending on the command line option `--medium`, panache would select either the
+Depending on the value of the command line option `--medium` (e.g. `darfthtml`,
+`finalhtml`, or `wiki`), panache would select either the
 `privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would then 
 compute the commandline, filters and metadata for the selected style and finally 
 call Pandoc.
@@ -79,8 +80,8 @@ file.
 ## Style Variables
 
 Obviously, the style definitions above may work for the user `sebastian` but are
-likely to produce unexpected results for a different user. That is where style
-variables may be handy.
+likely to fail for a different user. This is where parameterized style definitions
+may be handy.
 
 panache uses [{{ mustache }}](https://github.com/mustache/mustache.github.com)
 as template engine. Through that, panache allows to use "tags" in style
@@ -99,11 +100,13 @@ germanwikihtml:
 
 Now, if `--style-var=home:/home/sebastian` would be passed to
 panache, then `template` would be resolved to 
-`/home/sebastian/pandoc-templates/wiki-de.html` (and as `--template=/home/sebastian/pandoc-templates/wiki-de.html`
-passed to Pandoc). Obviously, using `--style-var=home:~` makes the panache call
-user agnostic (in Bash).
+`/home/sebastian/pandoc-templates/wiki-de.html` (and as
+`--template=/home/sebastian/pandoc-templates/wiki-de.html` passed to Pandoc).
+Obviously, using `--style-var=home:~` makes the panache call user agnostic
+(in Bash).
 
-Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html) one may express conditions and repetitions.
+Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html)
+one may express conditions and repetitions.
 
 # Installation
 
