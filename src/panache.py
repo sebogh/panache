@@ -146,42 +146,35 @@ class PanacheStyles:
 
             with open(path, 'r', encoding='utf-8') as f:
 
-                # try to load YAML-data from file
-                try:
+                # read the file
+                content = f.read()
 
-                    # read the file
-                    content = f.read()
+                # render content (apply substitutions)
+                rendered_content = pystache.render(content, self.style_vars)
 
-                    # render content (apply substitutions)
-                    rendered_content = pystache.render(content, self.style_vars)
+                # load YAML-data
+                data = yaml.load(rendered_content)
 
-                    # load YAML-data
-                    data = yaml.load(rendered_content)
+                # if YAML contains style definitions
+                if STYLEDEF_ in data:
 
-                    # if YAML contains style definitions
-                    if STYLEDEF_ in data:
+                    stylefile_basename = os.path.basename(path)
 
-                        stylefile_basename = os.path.basename(path)
+                    # add each new one
+                    for style_name in data[STYLEDEF_]:
 
-                        # add each new one
-                        for style_name in data[STYLEDEF_]:
+                        if style_name not in self.styles:
 
-                            if style_name not in self.styles:
+                            logging.debug("  Adding '%s' (found in '%s')."
+                                         % (style_name, stylefile_basename))
 
-                                logging.debug("  Adding '%s' (found in '%s')."
-                                             % (style_name, stylefile_basename))
+                            self.styles[style_name] = \
+                                PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
 
-                                self.styles[style_name] = \
-                                    PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
+                        else:
 
-                            else:
-
-                                logging.warning("Ignoring duplicate definition of '%s' (found in'%s')."
-                                                % (style_name, stylefile_basename))
-
-                except Exception as e:
-                    logging.warning(e)
-                    pass
+                            logging.warning("Ignoring duplicate definition of '%s' (found in'%s')."
+                                            % (style_name, stylefile_basename))
 
     def update(self, update):
 
@@ -267,10 +260,11 @@ OPTIONS
         The input path. Default STDIN.
     --output=<PATH>
         The output path. Default STDOUT.
-    --style=<STYLE>
-        The style to use.
     --medium=<MEDIUM>
         The target medium.
+    --style=<STYLE>
+        The fallback style to use, if --medium is not specified or
+        the input doesn't specify a style for the given medium. 
     --style-dir=<PATH>
         Where to find style definitions.
         (Default: '{default_style_dir}'). 
@@ -291,7 +285,7 @@ PANDOC-OPTIONS
 
 AUTHOR
 
-    Sebastian Bogan sebastian.bogan@t-systems.com
+    Sebastian Bogan sebogh@qibli.net
 
 """.format(**{'name': script_base, 'usage': usage, 'default_style_dir': default_style_dir}))
         sys.exit(0)
@@ -321,7 +315,6 @@ AUTHOR
 
     # default style variables
     style_vars = {
-        'style_dir': options.style_dir,
         'panache_dir': script_dir,
         'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
@@ -329,6 +322,10 @@ AUTHOR
         'input_basename_root': '',
         'input_basename_extension': '',
     }
+
+    # if we have a style dir
+    if options.style_dir:
+        style_vars['style_dir'] = options.style_dir
 
     # extend default style variables if we have an input
     if options.input:
