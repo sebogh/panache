@@ -150,10 +150,37 @@ Dowload the latest binary from the [releases page] and run `panache.exe`
 
 # Details
 
+## Default Style- and Meta-Variables
+
+The following Style- and Meta-Variables will be added by default, if input comes from STDIN:
+
+| Variable                | Description                                                                                |
+|------------------------ |--------------------------------------------------------------------------------------------|
+| `panache_dir`           | directory of the panache script                                                            |
+| `panache_version_X.Y.Z` | panache version where `X`, `Y`, `Z` are major, minor and patch (see [Semantic Versioning]) | 
+| `os_X`                  | os type where `X` is one of `posix`, `nt`, `ce`, `java`.                                   | 
+| `build_date`            | the date and time when panache was invoked (in the form `YYYY-mm-ddTHH:MM:SSZ`)            |
+
+If input comes from a file the following additional Style- and Meta-Variables will be added by default:
+
+| Variable                   | Description                                                                                |
+|--------------------------- |--------------------------------------------------------------------------------------------|
+| `input_dir`                | directory of the input file                                                                |
+| `input_basename`           | basename of the input file                                                                 |
+| `input_basename_root`      | basename without extension of the input file                                               |
+| `input_basename_extension` | extension of the basename                                                                  |
+| `vcsreference`             | vcs reference of the file                                                                  |
+| `vcsdate`                  | vcs date (last change)                                                                     |
+
+
+## MORE
+
 tbd.
+
 
 [releases page]: https://github.com/sebogh/panache/releases
 [github-repository]: https://github.com/sebogh/panache.git
 [Pandoc]: https://pandoc.org
 [panzer]: https://github.com/msprev/panzer
 [Pandocomatic]: https://heerdebeer.org/Software/markdown/pandocomatic/
+[Semantic Versioning]: https://semver.org/
