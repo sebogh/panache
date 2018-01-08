@@ -655,8 +655,11 @@ def main():
         process = Popen(command, stdout=sys.stdout, stderr=sys.stderr)
         process.wait()
 
+        if options.output:
+            logging.info("Created '%s'." % options.output)
+
         # delete the temporary files
-        #silent_remove(metadata_file)
+        silent_remove(metadata_file)
         if not options.input:
             silent_remove(input_file)
 
