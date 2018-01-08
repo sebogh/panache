@@ -371,8 +371,7 @@ def silent_remove(filename):
             # but re-raise any other
             raise
 
-
-def get_yaml_lines(lines: list):
+def get_yaml_lines(lines):
     """" Strip `lines' to those lines that are YAML.
     """
     start = re.compile('^[-]{3}\s*$', flags=0)
