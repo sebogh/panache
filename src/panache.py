@@ -196,11 +196,11 @@ class PanacheStyles:
 
             logging.debug("  Merging '%s' (found in '%s')." % (style_name, stylefile_basename))
 
-            style.parent = update.parent
             style.commandline = merge_two_dicts(style.commandline, update.commandline)
             style.metadata = merge_two_dicts(style.metadata, update.metadata)
+
             style.filters_run = style.filters_run + update.filters_run
-            style.filters_kill = style.filters_run + update.filters_kill
+            style.filters_kill = style.filters_kill + update.filters_kill
 
     def resolve(self, style_name):
 
