@@ -27,7 +27,9 @@ script_dir = os.path.dirname(script)
 base_dir = "%s/.." % script_dir
 script_base = os.path.basename(script)
 user_home = os.path.expanduser("~")
-default_style_dir = "%s/.panache" % user_home
+default_style_dir = os.path.join(user_home, ".panache").replace(os.path.sep, '/')
+version = "0.1.3"
+
 
 # setup logging
 logging.basicConfig(format="%(message)s")
@@ -235,10 +237,19 @@ def parse_cmdline(cl):
     parser.add_option("--medium", dest="medium", default="")
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
     parser.add_option("--verbose", dest="verbose", action="store_true", default=False)
+    parser.add_option("--version", dest="version", action="store_true", default=False)
     parser.add_option("--style-dir", dest="style_dir")
     parser.add_option("--style-var", dest="style_vars", action="append", default=[])
 
     (options, args) = parser.parse_args(cl)
+
+    if options.version:
+        os.sys.stderr.write("""panache {version}
+Default style directory: '{default_style_dir}'
+Copyright (C) 2006-2018 Sebastian Bogan
+Web: https://github.com/sebogh/panache
+""".format(**{'version': version, 'default_style_dir': default_style_dir}))
+        sys.exit(0)
 
     if options.help:
         os.sys.stderr.write("""
@@ -276,6 +287,8 @@ OPTIONS
         Print verbose info (to STDERR).
     --debug
         Print all debug info (to STDERR).
+    --version
+        Print panache version info and exit.
     -h, --help
         Print this help message.
 
