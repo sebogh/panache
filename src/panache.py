@@ -17,9 +17,11 @@ import glob
 import yaml
 import logging
 import pystache
-from datetime import datetime
-from subprocess import Popen
+import xml.etree.ElementTree
+from subprocess import Popen, PIPE, check_output
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
+from datetime import datetime
+
 
 # check script environment
 script = os.path.realpath(sys.argv[0]).replace(os.path.sep, '/')
@@ -33,6 +35,97 @@ version = "0.1.3"
 
 # setup logging
 logging.basicConfig(format="%(message)s")
+
+
+def check_output(cmd):
+    environment_variables = os.environ.copy()
+    environment_variables['LANG'] = 'en_US.UTF-8'
+
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=environment_variables)
+
+    stdout = p.stdout.read()
+    stderr = p.stderr.read()
+    r = p.wait()
+    p.stdout.close()
+    p.stderr.close()
+
+    if r == 0:
+        return stdout.decode("utf8")
+    else:
+        raise PanacheException(stderr.decode("utf8"))
+
+def get_reference(input_path):
+
+    if not input_path:
+        return ''
+
+    abs_path = os.path.abspath(input_path)
+    abs_dir = os.path.dirname(abs_path)
+
+    # try git
+    try:
+
+        stdout = check_output(['git', '-C', abs_dir, 'log', '-1', '--format="%h"', abs_path])
+        if stdout:
+            return stdout.strip().strip('"')
+
+
+    except:
+
+        # try svn
+        try:
+
+            stdout = check_output(['svn', '--non-interactive', 'info', '--xml', abs_path])
+
+            if stdout:
+                root = xml.etree.ElementTree.fromstring(stdout)
+                entry_attr = root.find('entry').attrib
+
+                # compute local reference of the file
+                return entry_attr['revision']
+
+        except:
+            pass
+
+    return ''
+
+
+def get_last_change(input_path):
+
+    if not input_path:
+        return ''
+
+
+    abs_path = os.path.abspath(input_path)
+    abs_dir = os.path.dirname(abs_path)
+
+    # try git
+    try:
+
+        stdout = check_output(['git', '-C', abs_dir, 'log', '-1', '--date=iso', '--format=%cd', abs_path])
+        if stdout:
+            dt = datetime.strptime(stdout.strip(), '%Y-%m-%d %H:%M:%S %z')
+            dt = dt - dt.utcoffset()
+            return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    except Exception as e:
+
+        # try svn
+        try:
+
+            stdout = check_output(['svn', '--non-interactive', 'info', '--xml', abs_path])
+
+            if stdout:
+                root = xml.etree.ElementTree.fromstring(stdout)
+                entry = root.find('.//date')
+                if entry is not None:
+                    date = datetime.strptime(entry.text, '%Y-%m-%dT%H:%M:%S.%fZ')
+                    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        except:
+            pass
+
+    return ''
 
 
 # panache-specific YAML words
@@ -198,7 +291,6 @@ class PanacheStyles:
 
             style.commandline = merge_two_dicts(style.commandline, update.commandline)
             style.metadata = merge_two_dicts(style.metadata, update.metadata)
-
             style.filters_run = style.filters_run + update.filters_run
             style.filters_kill = style.filters_kill + update.filters_kill
 
@@ -351,6 +443,8 @@ AUTHOR
         style_vars['input_basename'] = input_basename
         style_vars['input_basename_root'] = input_basename_root
         style_vars['input_basename_extension'] = input_basename_extension
+        style_vars['vcsreference'] = get_reference(options.input)
+        style_vars['vcsdate'] = get_last_change(options.input)
 
     # add style variables from the command line
     # style variables must follow the rules of template strings
