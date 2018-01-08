@@ -330,7 +330,7 @@ AUTHOR
     style_vars = {
         'panache_dir': script_dir,
         'panache_version_%s' % version: True,
-        'os': os.name,
+        'os_%s' % os.name: True,
         'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
         'input_basename': '',
