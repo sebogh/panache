@@ -5,11 +5,11 @@ GOALS = venv test dist clean tidy
 help:
 	@echo "choose a target from $(GOALS)."
 
-venv:
+venv: requirements.txt
 	( \
-		virtualenv -p /usr/bin/python3 venv; \
+		virtualenv -p /usr/bin/python venv; \
 		source venv/bin/activate; \
-		pip install -r requirements.txt; \
+		pip install -U -r requirements.txt; true; \
 	)
 
 test: venv
