@@ -329,6 +329,7 @@ AUTHOR
     # default style variables
     style_vars = {
         'panache_dir': script_dir,
+        'os': os.name,
         'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
         'input_basename': '',
@@ -526,6 +527,9 @@ def main():
         # resolve style to Pandoc compile parameters (and metadata)
         parameters = panache_styles.resolve(style)
         logging.debug("Resolving style '%s'." % style)
+
+        # all stylevariables become metadata (wich may be overwritten by the style)
+        parameters[METADATA_] = merge_two_dicts(style_vars, parameters[METADATA_])
 
         ## substitute variables in the resolved style
         #parameters = substitute_style_vars_and_append_default(parameters, style_vars)
