@@ -96,3 +96,7 @@ ENV/
 
 # ignore the bins
 bin/
+panache.wixobj
+panache.wixpdb
+
+

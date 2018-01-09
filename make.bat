@@ -36,10 +36,15 @@ GOTO :eof
 
 :DIST
 venv\Scripts\pyinstaller -p . --onefile src\panache.py --distpath=bin
+"C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe" panache.wxs
+"C:\Program Files (x86)\WiX Toolset v3.11\bin\light.exe" panache.wixobj
+move panache.msi bin
 GOTO :eof
 
 :CLEAN
 del /Q /F panache.spec
+del /Q /F panache.wixobj
+del /Q /F panache.wixpdb
 rmdir /Q /S build
 rmdir /Q /S __pycache__
 GOTO :eof

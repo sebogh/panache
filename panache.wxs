@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<!-- 
+see: https://www.firegiant.com/wix/tutorial/getting-started
+-->
+<?define VERSION = "0.1.3" ?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+	<Product 
+		Name='Panache $(var.VERSION)' 
+		Id='62e9278b-64ce-4b58-9118-3cc4a7cba832' 
+        UpgradeCode='4604d7d3-21a9-418b-a497-097123a24169'
+        Language='1033' 
+		Codepage='1252' 
+		Version="$(var.VERSION)"
+		Manufacturer="Sebastian Bogan">
+		<Package 
+		Id='*' 
+		Keywords='Installer' 
+		Description="Panache $var.VERSION Installer"
+        InstallerVersion='100' 
+		Languages='1033' 
+		Compressed='yes' 
+		SummaryCodepage='1252' />
+		<Media Id='1' Cabinet='product.cab' EmbedCab='yes' />
+
+		<Directory Id='TARGETDIR' Name='SourceDir'>
+			<Directory Id='ProgramFilesFolder' Name='PFiles'>
+				<Directory Id='INSTALLDIR' Name='Panache'>
+					<Component Id='MainExecutable' Guid='30a33d35-8dcd-4d65-85a3-53316067f1ab'>
+						<RegistryValue Root="HKMU"
+                           Key="Software\Sebastian Bogan\Panache"
+                           Name="Version" Type="string" Value="[ProductVersion]"
+                           KeyPath="yes"/>
+						<File Id='PanacheEXE' Name='Panache.exe' Source='bin\Panache.exe' />
+						<File Id="PanacheLICENSE" Name='LICENSE' Source='LICENSE'/>
+					</Component>
+
+					<Component Id="UpdateSystemPath"
+                     Guid="e59af596-eeb9-4252-b78a-a78fe2535455"
+                     KeyPath="yes">
+
+						<Environment Id='SetSystemPath' Name='PATH' Action='set'
+                       Permanent='no' System='yes' Part='last'
+                       Value='[INSTALLDIR]' />
+					</Component>
+
+				</Directory>
+			</Directory>
+
+		</Directory>
+
+		<Feature Id="Complete" Level="1" Title="Panache $(var.VERSION)"
+             Description="Complete package"  Display="expand"
+             ConfigurableDirectory="INSTALLDIR">
+			<Feature Id="MainProgram"
+               Title="Program"
+               Description="The main executable."
+               Level="1">
+				<ComponentRef Id="MainExecutable" />
+				<ComponentRef Id="UpdateSystemPath" />
+			</Feature>
+
+		</Feature>
+
+	</Product>
+</Wix>
