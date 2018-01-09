@@ -528,17 +528,17 @@ def determine_style(options, input_yaml):
     """ Determine the style to use.
     """
 
-    # a style named on the command line has highest priority
-    if options and options.style:
-        return options.style
-
-    # if there is no style named on the command line a "medium" -> "style" match would be used if available
+    # try the challenge response
     if (options
         and input_yaml
         and options.medium
         and STYLES_ in input_yaml
         and options.medium in input_yaml[STYLES_]):
         return input_yaml[STYLES_][options.medium]
+
+    # if challange response fails try fallback
+    if options and options.style:
+        return options.style
 
     return None
 
