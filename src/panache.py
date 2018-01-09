@@ -546,11 +546,10 @@ def determine_style(options, input_yaml):
 def compile_command_line(input_file, metadata_file, parameters, options, args):
 
     # compile command line
-    command = ["pandoc"]
+    command = ["pandoc", input_file]
 
     if metadata_file:
         command.append(metadata_file)
-    command.append(input_file)
     if options.output:
         command.append('--output=%s' % options.output)
     for key, value in parameters[COMMANDLINE_].items():

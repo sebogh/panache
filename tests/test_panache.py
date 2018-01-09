@@ -163,7 +163,7 @@ class AdvancedTestCase(unittest.TestCase):
         panache_styles.update(style)
         parameters = panache_styles.resolve(style_name)
         result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
-        expected = ['pandoc', 'foo/metadata', sample_markdown_file, '--toc']
+        expected = ['pandoc', sample_markdown_file, 'foo/metadata', '--toc']
         self.assertEqual(result, expected)
 
     def testcompile_command_line_2(self):
@@ -175,7 +175,7 @@ class AdvancedTestCase(unittest.TestCase):
         self.assertEqual(style_name, 'wikihtml')
         parameters = panache_styles.resolve(style_name)
         result = compile_command_line(sample_markdown_file, 'foo/metadata', parameters, options, args)
-        expected = {'pandoc', 'foo/metadata', sample_markdown_file, '--toc', '--toc-depth=3', '--number-sections',
+        expected = {'pandoc', sample_markdown_file, 'foo/metadata', '--toc', '--toc-depth=3', '--number-sections',
                     '--highlight-style=tango', '--html-q-tags', '--smart', '--template=%s/template-html.html' % resource_dir}
         self.assertEqual(set(result), expected)
 
