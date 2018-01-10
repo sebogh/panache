@@ -446,6 +446,16 @@ AUTHOR
         style_vars['vcsreference'] = get_reference(options.input)
         style_vars['vcsdate'] = get_last_change(options.input)
 
+    # extend default style variables if we have an output
+    if options.output:
+        output_dir = os.path.dirname(options.output)
+        output_basename = os.path.basename(options.output)
+        output_basename_root, output_basename_extension = os.path.splitext(output_basename)
+        style_vars['output_dir'] = output_dir
+        style_vars['output_basename'] = output_basename
+        style_vars['output_basename_root'] = output_basename_root
+        style_vars['output_basename_extension'] = output_basename_extension
+
     # add style variables from the command line
     # style variables must follow the rules of template strings
     # see: https://docs.python.org/3.5/library/string.html#template-strings
