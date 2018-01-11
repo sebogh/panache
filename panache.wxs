@@ -41,7 +41,7 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
                            Key="Software\Sebastian Bogan\Panache"
                            Name="Version" Type="string" Value="[ProductVersion]"
                            KeyPath="yes"/>
-						<File Id='PanacheEXE' Name='Panache.exe' Source='bin\Panache.exe' />
+						<File Id='PanacheEXE' Name='panache.exe' Source='bin\panache.exe' />
 						<File Id="PanacheLICENSE" Name='LICENSE' Source='LICENSE'/>
 					</Component>
 
