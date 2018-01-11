@@ -16,10 +16,11 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
 		Id='*' 
 		Keywords='Installer' 
 		Description="Panache $var.VERSION Installer"
-        InstallerVersion='100' 
+        InstallerVersion='200' 
 		Languages='1033' 
 		Compressed='yes' 
-		SummaryCodepage='1252' />
+		SummaryCodepage='1252'
+		Platform="x64" />
 		<Media Id='1' Cabinet='product.cab' EmbedCab='yes' />
 		<Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
 		<Upgrade Id="$(var.UpgradeCode)">
@@ -33,9 +34,9 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
 		</InstallExecuteSequence>
 		
 		<Directory Id='TARGETDIR' Name='SourceDir'>
-			<Directory Id='ProgramFilesFolder' Name='PFiles'>
+			<Directory Id='ProgramFiles64Folder' Name='PFiles'>
 				<Directory Id='INSTALLDIR' Name='Panache'>
-					<Component Id='MainExecutable' Guid='30a33d35-8dcd-4d65-85a3-53316067f1ab'>
+					<Component Id='MainExecutable' Guid='30a33d35-8dcd-4d65-85a3-53316067f1ab' Win64='yes'>
 						<RegistryValue Root="HKMU"
                            Key="Software\Sebastian Bogan\Panache"
                            Name="Version" Type="string" Value="[ProductVersion]"
@@ -46,7 +47,7 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
 
 					<Component Id="UpdateSystemPath"
                      Guid="e59af596-eeb9-4252-b78a-a78fe2535455"
-                     KeyPath="yes">
+                     KeyPath="yes"  Win64='yes'>
 
 						<Environment Id='SetSystemPath' Name='PATH' Action='set'
                        Permanent='no' System='yes' Part='last'
