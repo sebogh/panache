@@ -2,12 +2,12 @@
 <!-- 
 see: https://www.firegiant.com/wix/tutorial/getting-started
 -->
-<?define VERSION = "0.1.3" ?>
+<?define UpgradeCode = "4604d7d3-21a9-418b-a497-097123a24169" ?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 	<Product 
 		Name='Panache $(var.VERSION)' 
-		Id='62e9278b-64ce-4b58-9118-3cc4a7cba832' 
-        UpgradeCode='4604d7d3-21a9-418b-a497-097123a24169'
+		Id="*"
+        UpgradeCode="$(var.UpgradeCode)"
         Language='1033' 
 		Codepage='1252' 
 		Version="$(var.VERSION)"
@@ -21,7 +21,17 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
 		Compressed='yes' 
 		SummaryCodepage='1252' />
 		<Media Id='1' Cabinet='product.cab' EmbedCab='yes' />
+		<Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+		<Upgrade Id="$(var.UpgradeCode)">
+			<UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
+				Minimum='0.0.0'  IncludeMinimum='yes'
+				Maximum="99.0.0" IncludeMaximum="yes" />
+		</Upgrade>
 
+		<InstallExecuteSequence>
+			<RemoveExistingProducts  After='InstallFinalize'/>
+		</InstallExecuteSequence>
+		
 		<Directory Id='TARGETDIR' Name='SourceDir'>
 			<Directory Id='ProgramFilesFolder' Name='PFiles'>
 				<Directory Id='INSTALLDIR' Name='Panache'>
@@ -42,8 +52,8 @@ see: https://www.firegiant.com/wix/tutorial/getting-started
                        Permanent='no' System='yes' Part='last'
                        Value='[INSTALLDIR]' />
 					</Component>
-
 				</Directory>
+
 			</Directory>
 
 		</Directory>
