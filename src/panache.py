@@ -248,7 +248,10 @@ class PanacheStyles:
                 rendered_content = pystache.render(content, self.style_vars)
 
                 # load YAML-data
-                data = yaml.load(rendered_content)
+                try:
+                    data = yaml.load(rendered_content)
+                except yaml.scanner.ScannerError as e:
+                    raise PanacheException("YAML error in %s:\n%s\n" % (f.name, e), 200)
 
                 # if YAML contains style definitions
                 if STYLEDEF_ in data:
@@ -529,7 +532,11 @@ def get_input_yaml(file, style_vars = {}):
     rendered_content = pystache.render(content, style_vars)
 
     # load YAML-data
-    data = yaml.load(rendered_content)
+
+    try:
+        data = yaml.load(rendered_content)
+    except yaml.scanner.ScannerError as e:
+        raise PanacheException("YAML error in input:\n%s\n" % (e), 200)
 
     return data
 
@@ -576,18 +583,6 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
     return command
 
 
-# def substitute_style_vars_and_append_default(parameters, style_vars):
-#
-#     yaml_dump = yaml.dump(parameters)
-#     substituted = pystache.render(yaml_dump, style_vars)
-#     yaml_load = yaml.load(substituted)
-#
-#     # append the style variables to metadata
-#     yaml_load[METADATA_] = merge_two_dicts(style_vars, yaml_load[METADATA_])
-#
-#     return yaml_load
-
-
 def main():
 
     try:
@@ -626,7 +621,6 @@ def main():
             logging.info("Computed style '%s'." % style)
         else:
             logging.info("Couldn't compute a style.")
-
 
         # resolve style to Pandoc compile parameters (and metadata)
         parameters = panache_styles.resolve(style)
@@ -675,6 +669,9 @@ def main():
     except PanacheException as e:
         sys.stderr.write(e.message)
         sys.exit(e.code)
+    except Exception as e:
+        sys.stderr.write(e)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
