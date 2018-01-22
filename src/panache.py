@@ -30,7 +30,7 @@ base_dir = "%s/.." % script_dir
 script_base = os.path.basename(script)
 user_home = os.path.expanduser("~")
 default_style_dir = os.path.join(user_home, ".panache").replace(os.path.sep, '/')
-version = "0.2.0"
+version = "0.2.1"
 
 # setup logging
 logging.basicConfig(format="%(message)s")
