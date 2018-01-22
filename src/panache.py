@@ -18,7 +18,7 @@ import yaml
 import logging
 import pystache
 import xml.etree.ElementTree
-from subprocess import Popen, PIPE, check_output
+from subprocess import Popen, PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 from datetime import datetime
 
@@ -32,29 +32,15 @@ user_home = os.path.expanduser("~")
 default_style_dir = os.path.join(user_home, ".panache").replace(os.path.sep, '/')
 version = "0.2.0"
 
-
 # setup logging
 logging.basicConfig(format="%(message)s")
 
+# defined subprocess environment
+subprocess_environment = os.environ.copy()
+subprocess_environment['LANG'] = 'en_US.UTF-8'
 
-def check_output(cmd):
-    environment_variables = os.environ.copy()
-    environment_variables['LANG'] = 'en_US.UTF-8'
 
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=environment_variables)
-
-    stdout = p.stdout.read()
-    stderr = p.stderr.read()
-    r = p.wait()
-    p.stdout.close()
-    p.stderr.close()
-
-    if r == 0:
-        return stdout.decode("utf8")
-    else:
-        raise PanacheException(stderr.decode("utf8"))
-
-def get_reference(input_path):
+def get_vcs_info(input_path):
 
     if not input_path:
         return ''
@@ -62,71 +48,73 @@ def get_reference(input_path):
     abs_path = os.path.abspath(input_path)
     abs_dir = os.path.dirname(abs_path)
 
-    # try git
+    # try Git
     try:
 
-        stdout = check_output(['git', '-C', abs_dir, 'log', '-1', '--format="%h"', abs_path])
-        if stdout:
-            return stdout.strip().strip('"')
+        # try Git
+        cmd = ['git', '-C', abs_dir, 'log', '-1', '--date=iso', '--format="%h;%cd"', abs_path]
+        p = run(cmd, stdout=PIPE, stderr=PIPE, env=subprocess_environment)
 
+        if p.returncode == 0:
 
-    except:
+            # if Git-call succeeded
+            logging.debug("Input is part of a Git repo.")
+            stdout = p.stdout.decode("utf8")
+            match = re.match(r'"(.+);(.+)"\n', stdout)
 
-        # try svn
-        try:
+            if match:
+                return match.group(1), match.group(2)
+        else:
 
-            stdout = check_output(['svn', '--non-interactive', 'info', '--xml', abs_path])
+            # if Git-call failed
+            stderr = p.stderr.decode("utf8")
+            if stderr.find('Not a git repository') > 0:
 
-            if stdout:
-                root = xml.etree.ElementTree.fromstring(stdout)
-                entry_attr = root.find('entry').attrib
+                # if Git failed, because it is not a GIT repo
+                logging.debug("Input is not part of a Git repo.")
 
-                # compute local reference of the file
-                return entry_attr['revision']
+                # try SVN
+                cmd = ['svn', '--non-interactive', 'info', '--xml', abs_path]
+                p = run(cmd, stdout=PIPE, stderr=PIPE, env=subprocess_environment)
 
-        except:
-            pass
+                if p.returncode == 0:
+                    logging.debug("Input is part of a SVN repo.")
+                    stdout = p.stdout.decode("utf8")
+                    root = xml.etree.ElementTree.fromstring(stdout)
+                    revision = formatted_date = None
+                    entry_attr = root.find('entry').attrib
+                    if entry_attr:
+                        revision = entry_attr['revision']
+                    entry = root.find('.//date')
+                    if entry is not None:
+                        date = datetime.strptime(entry.text, '%Y-%m-%dT%H:%M:%S.%fZ')
+                        formatted_date = date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    if revision and formatted_date:
+                        return revision, formatted_date
 
-    return ''
+                else:
 
+                    # if SVN-call failed
+                    stderr = p.stderr.decode("utf8")
+                    if stderr.find('is not a working copy') > 0:
 
-def get_last_change(input_path):
+                        # if SVN failed, because it is not a SVN repo
+                        logging.debug("Input is not part of a SVN repo.")
 
-    if not input_path:
-        return ''
+                    else:
 
+                        # if it may be a SVN repo but the SVN call failed for some other reason
+                        logging.debug("Error calling SVN. %s" % stderr)
 
-    abs_path = os.path.abspath(input_path)
-    abs_dir = os.path.dirname(abs_path)
+            else:
 
-    # try git
-    try:
-
-        stdout = check_output(['git', '-C', abs_dir, 'log', '-1', '--date=iso', '--format=%cd', abs_path])
-        if stdout:
-            dt = datetime.strptime(stdout.strip(), '%Y-%m-%d %H:%M:%S %z')
-            dt = dt - dt.utcoffset()
-            return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                # if it may be a Git repo but the Git call failed for some other reason
+                logging.debug("Error calling Git. %s" % stderr)
 
     except Exception as e:
+        logging.debug("Error getting VCS info. %s" % e)
 
-        # try svn
-        try:
-
-            stdout = check_output(['svn', '--non-interactive', 'info', '--xml', abs_path])
-
-            if stdout:
-                root = xml.etree.ElementTree.fromstring(stdout)
-                entry = root.find('.//date')
-                if entry is not None:
-                    date = datetime.strptime(entry.text, '%Y-%m-%dT%H:%M:%S.%fZ')
-                    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-        except:
-            pass
-
-    return ''
-
+    return '', ''
 
 # panache-specific YAML words
 STYLEDEF_ = 'styledef_'
@@ -442,12 +430,13 @@ AUTHOR
         input_dir = os.path.dirname(options.input)
         input_basename = os.path.basename(options.input)
         input_basename_root, input_basename_extension = os.path.splitext(input_basename)
+        vcs_reference, vcs_date = get_vcs_info(options.input)
         style_vars['input_dir'] = input_dir
         style_vars['input_basename'] = input_basename
         style_vars['input_basename_root'] = input_basename_root
         style_vars['input_basename_extension'] = input_basename_extension
-        style_vars['vcsreference'] = get_reference(options.input)
-        style_vars['vcsdate'] = get_last_change(options.input)
+        style_vars['vcsreference'] = vcs_reference
+        style_vars['vcsdate'] = vcs_date
 
     # extend default style variables if we have an output
     if options.output:
@@ -629,9 +618,6 @@ def main():
         # all stylevariables become metadata (wich may be overwritten by the style)
         parameters[METADATA_] = merge_two_dicts(style_vars, parameters[METADATA_])
 
-        ## substitute variables in the resolved style
-        #parameters = substitute_style_vars_and_append_default(parameters, style_vars)
-
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
             metadata = yaml.dump(parameters[METADATA_],
@@ -655,11 +641,13 @@ def main():
 
         # run the command
         logging.info("Running:\n  %s" % ' '.join(command))
-        process = Popen(command, stdout=sys.stdout, stderr=sys.stderr)
-        process.wait()
+        p = run(command, stdout=sys.stdout, stderr=sys.stderr, env=subprocess_environment)
 
-        if options.output:
-            logging.info("Created '%s'." % options.output)
+        if p.returncode == 0:
+            if options.output:
+                logging.info("Created:\n  %s." % options.output)
+        else:
+            sys.exit(1)
 
         # delete the temporary files
         silent_remove(metadata_file)
