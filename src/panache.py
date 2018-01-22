@@ -24,9 +24,11 @@ from datetime import datetime
 from yaml.scanner import ScannerError
 
 # check script environment
-script = os.path.realpath(sys.argv[0]).replace(os.path.sep, '/')
+if getattr(sys, 'frozen', False):
+    script = os.path.realpath(sys.executable).replace(os.path.sep, '/')
+elif __file__:
+    script = os.path.realpath(__file__).replace(os.path.sep, '/')
 script_dir = os.path.dirname(script)
-base_dir = "%s/.." % script_dir
 script_base = os.path.basename(script)
 user_home = os.path.expanduser("~")
 default_style_dir = os.path.join(user_home, ".panache").replace(os.path.sep, '/')
@@ -585,7 +587,7 @@ def main():
 
         # parse and validate command line
         options, args, style_vars = parse_cmdline(sys.argv[1:])
-        logging.info("Panache %s" % version)
+        logging.info("Panache %s ('%s')" % (version, script))
         logging.debug("Parsed commandline.")
 
         # get vcs-info
