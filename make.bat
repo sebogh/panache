@@ -15,6 +15,8 @@ IF "%1"=="test" (
 ) ELSE IF "%1"=="tidy" (
 	CALL :CLEAN
 	CALL :TIDY
+) ELSE IF "%1"=="installer" (
+	CALL :INSTALLER
 ) ELSE IF "%1"=="help" (
 	CALL :HELP
 ) ELSE (
@@ -27,7 +29,7 @@ GOTO :eof
 
 
 :HELP
-echo choose a target from "test", "dist", "clean", "tidy", "help"
+echo choose a target from "test", "clean", "tidy", "help", "installer"
 GOTO :eof
 
 :TEST
@@ -35,7 +37,10 @@ venv\Scripts\python.exe tests\test_panache.py
 GOTO :eof
 
 :DIST
-venv\Scripts\pyinstaller --onefile src\panache.py --distpath=bin
+echo make binaries at linux machine with docker
+GOTO :eof
+
+:INSTALLER
 CALL make-windows-installer.bat
 GOTO :eof
 
