@@ -39,7 +39,6 @@ logging.basicConfig(format="%(message)s")
 subprocess_environment = os.environ.copy()
 subprocess_environment['LANG'] = 'en_US.UTF-8'
 
-
 def get_vcs_info(input_path):
 
     if not input_path:
@@ -575,6 +574,11 @@ def compile_command_line(input_file, metadata_file, parameters, options, args):
 def main():
 
     try:
+
+        # ensure correct python version
+        if sys.version_info.major < 3 or sys.version_info.minor < 7:
+            raise PanacheException("Wrong Python version (%d.%d). Need Python >= 3.5"
+                                   % (sys.version_info.major, sys.version_info.minor), 300)
 
         # parse and validate command line
         options, args, style_vars = parse_cmdline(sys.argv[1:])
