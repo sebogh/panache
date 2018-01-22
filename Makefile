@@ -24,7 +24,7 @@ dist: bin/panache
 bin/panache: venv src/panache.py
 	( \
 		source venv/bin/activate; \
-		pyinstaller -p . --onefile src/panache.py --distpath=bin; \
+		pyinstaller --onefile src/panache.py --distpath=bin; \
 		chmod 755 bin/panache; \
 	)
 

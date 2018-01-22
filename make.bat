@@ -35,7 +35,7 @@ venv\Scripts\python.exe tests\test_panache.py
 GOTO :eof
 
 :DIST
-venv\Scripts\pyinstaller -p . --onefile src\panache.py --distpath=bin
+venv\Scripts\pyinstaller --onefile src\panache.py --distpath=bin
 CALL make-windows-installer.bat
 GOTO :eof
 
