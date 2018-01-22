@@ -99,4 +99,5 @@ bin/
 panache.wixobj
 panache.wixpdb
 
-
+# ignore emacs backup files
+*~
