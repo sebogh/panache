@@ -39,7 +39,8 @@ logging.basicConfig(format="%(message)s")
 subprocess_environment = os.environ.copy()
 subprocess_environment['LANG'] = 'en_US.UTF-8'
 
-def get_vcs_info(input_path):
+
+def vcs_lookup(input_path):
 
     if not input_path:
         return ''
@@ -319,6 +320,7 @@ def parse_cmdline(cl):
     parser.add_option("--debug", dest="debug", action="store_true", default=False)
     parser.add_option("--verbose", dest="verbose", action="store_true", default=False)
     parser.add_option("--version", dest="version", action="store_true", default=False)
+    parser.add_option("--disable-vcs-lookup", dest="disable_vcs_lookup", action="store_true", default=False)
     parser.add_option("--style-dir", dest="style_dir")
     parser.add_option("--style-var", dest="style_vars", action="append", default=[])
 
@@ -364,6 +366,8 @@ OPTIONS
         A variable that should be replaced in the style template.
         May be used several times. If the same key is used several 
         times, then the variable is interpreted as list of values.
+    --disable-vcs-lookup
+        Don't try to get VCS reference and last change date.
     --verbose
         Print verbose info (to STDERR).
     --debug
@@ -384,6 +388,14 @@ AUTHOR
 """.format(**{'name': script_base, 'usage': usage, 'default_style_dir': default_style_dir}))
         sys.exit(0)
 
+    if options.verbose:
+        logging.getLogger().setLevel(logging.INFO)
+
+    if options.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
+
+
     # path to the input- and output-file
     if options.input:
         options.input = os.path.abspath(options.input).replace(os.path.sep, '/')
@@ -400,12 +412,6 @@ AUTHOR
             raise PanacheException("No such directory '%s'." % options.style_dir, 103)
     elif os.path.isdir(default_style_dir):
         options.style_dir = default_style_dir
-
-    if options.verbose:
-        logging.getLogger().setLevel(logging.INFO)
-
-    if options.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
 
     # default style variables
     style_vars = {
@@ -428,13 +434,10 @@ AUTHOR
         input_dir = os.path.dirname(options.input)
         input_basename = os.path.basename(options.input)
         input_basename_root, input_basename_extension = os.path.splitext(input_basename)
-        vcs_reference, vcs_date = get_vcs_info(options.input)
         style_vars['input_dir'] = input_dir
         style_vars['input_basename'] = input_basename
         style_vars['input_basename_root'] = input_basename_root
         style_vars['input_basename_extension'] = input_basename_extension
-        style_vars['vcsreference'] = vcs_reference
-        style_vars['vcsdate'] = vcs_date
 
     # extend default style variables if we have an output
     if options.output:
@@ -576,13 +579,20 @@ def main():
     try:
 
         # ensure correct python version
-        if sys.version_info.major < 3 or sys.version_info.minor < 7:
+        if sys.version_info.major < 3 or sys.version_info.minor < 5:
             raise PanacheException("Wrong Python version (%d.%d). Need Python >= 3.5"
                                    % (sys.version_info.major, sys.version_info.minor), 300)
 
         # parse and validate command line
         options, args, style_vars = parse_cmdline(sys.argv[1:])
+        logging.info("Panache %s" % version)
         logging.debug("Parsed commandline.")
+
+        # get vcs-info
+        if options.input and not options.disable_vcs_lookup:
+            vcs_reference, vcs_date = vcs_lookup(options.input)
+            style_vars['vcsreference'] = vcs_reference
+            style_vars['vcsdate'] = vcs_date
 
         # initialize styles from the data directory
         panache_styles = PanacheStyles(style_vars)

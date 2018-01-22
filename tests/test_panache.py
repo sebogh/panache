@@ -19,6 +19,11 @@ from src.panache import \
     PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
     parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line
 
+# ensure correct python version
+if sys.version_info.major < 3 or sys.version_info.minor < 5:
+    raise Exception("Wrong Python version (%d.%d). Need Python >= 3.5"
+                    % (sys.version_info.major, sys.version_info.minor), 300)
+
 
 class SimpleTestCase(unittest.TestCase):
 
