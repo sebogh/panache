@@ -63,7 +63,7 @@ class SimpleTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_get_yaml_1(self):
-        result = get_input_yaml(sample_markdown_file)
+        result = get_input_yaml(sample_markdown_file, {})
         self.assertTrue(result)
         self.assertTrue(STYLES_ in result)
         self.assertTrue('wiki' in result[STYLES_])
@@ -94,21 +94,21 @@ class SimpleTestCase(unittest.TestCase):
 
     def test_determine_style_1(self):
         options, _, _ = parse_cmdline(['--medium=wiki'])
-        data = get_input_yaml(sample_markdown_file)
+        data = get_input_yaml(sample_markdown_file, {})
         result = determine_style(options, data)
         expected = 'wikihtml'
         self.assertEqual(result, expected)
 
     def test_determine_style_2(self):
         options, _, _ = parse_cmdline([])
-        data = get_input_yaml(sample_markdown_file)
+        data = get_input_yaml(sample_markdown_file, {})
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
 
     def test_determine_style_3(self):
         options, _, _ = parse_cmdline(['--medium=pdf'])
-        data = get_input_yaml(sample_markdown_file)
+        data = get_input_yaml(sample_markdown_file, {})
         result = determine_style(options, data)
         expected = None
         self.assertEqual(result, expected)
@@ -122,28 +122,28 @@ class AdvancedTestCase(unittest.TestCase):
 
 
     def test_panache_styles_load_1(self):
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles({})
         self.assertEqual(len(panache_styles.styles), 0)
 
     def test_panache_styles_load_2(self):
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles({})
         panache_styles.load(resource_dir)
         self.assertEqual(len(panache_styles.styles), 4)
         self.assertEqual(set(panache_styles.styles.keys()), {'html', 'en_html', 'it_html', 'wikihtml'})
 
     def test_panache_styles_update_1(self):
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles({})
         panache_styles.load(resource_dir)
-        input_yaml = get_input_yaml(sample_markdown_file)
+        input_yaml = get_input_yaml(sample_markdown_file, {})
         style_name = 'html'
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
         self.assertEqual(panache_styles.styles[style_name].metadata['lang'], 'ru')
 
     def test_panache_styles_resolve_1(self):
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles({})
         panache_styles.load(resource_dir)
-        input_yaml = get_input_yaml(sample_markdown_file)
+        input_yaml = get_input_yaml(sample_markdown_file, {})
         style_name = 'html'
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
@@ -155,9 +155,9 @@ class AdvancedTestCase(unittest.TestCase):
 
     def testcompile_command_line_1(self):
         options, args, _ = parse_cmdline([])
-        panache_styles = PanacheStyles()
+        panache_styles = PanacheStyles({})
         panache_styles.load(resource_dir)
-        input_yaml = get_input_yaml(sample_markdown_file)
+        input_yaml = get_input_yaml(sample_markdown_file, {})
         style_name = 'html'
         style = PanacheStyle(style_name, input_yaml[STYLEDEF_][style_name], sample_markdown_file)
         panache_styles.update(style)
@@ -170,7 +170,7 @@ class AdvancedTestCase(unittest.TestCase):
         options, args, style_vars = parse_cmdline(['--style-dir=%s' % resource_dir, '--medium=wiki'])
         panache_styles = PanacheStyles(style_vars)
         panache_styles.load(options.style_dir)
-        input_yaml = get_input_yaml(sample_markdown_file)
+        input_yaml = get_input_yaml(sample_markdown_file, {})
         style_name = determine_style(options, input_yaml)
         self.assertEqual(style_name, 'wikihtml')
         parameters = panache_styles.resolve(style_name)

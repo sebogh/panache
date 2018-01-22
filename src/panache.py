@@ -18,10 +18,10 @@ import yaml
 import logging
 import pystache
 import xml.etree.ElementTree
-from subprocess import Popen, PIPE, run
+from subprocess import PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 from datetime import datetime
-
+from yaml.scanner import ScannerError
 
 # check script environment
 script = os.path.realpath(sys.argv[0]).replace(os.path.sep, '/')
@@ -159,21 +159,21 @@ class PassThroughOptionParser(OptionParser):
     def _process_args(self, largs, rargs, values):
         while rargs:
             try:
-                OptionParser._process_args(self,largs,rargs,values)
-            except (BadOptionError,AmbiguousOptionError) as e:
+                OptionParser._process_args(self, largs, rargs, values)
+            except (BadOptionError, AmbiguousOptionError) as e:
                 largs.append(e.opt_str)
 
 
 class PanacheException(Exception):
 
-    def __init__(self, message, code = 0):
+    def __init__(self, message, code=0):
         self.code = code
         self.message = message
 
 
 class PanacheStyle:
 
-    def __init__(self, name, data = None, source = None):
+    def __init__(self, name, data=None, source=None):
 
         # style name
         assert name
@@ -214,9 +214,10 @@ class PanacheStyle:
 
         self.source = source
 
+
 class PanacheStyles:
 
-    def __init__(self, style_vars = {}):
+    def __init__(self, style_vars):
         self.styles = dict()
         self.style_vars = style_vars
 
@@ -238,7 +239,7 @@ class PanacheStyles:
                 # load YAML-data
                 try:
                     data = yaml.load(rendered_content)
-                except yaml.scanner.ScannerError as e:
+                except ScannerError as e:
                     raise PanacheException("YAML error in %s:\n%s\n" % (f.name, e), 200)
 
                 # if YAML contains style definitions
@@ -251,8 +252,7 @@ class PanacheStyles:
 
                         if style_name not in self.styles:
 
-                            logging.debug("  Adding '%s' (found in '%s')."
-                                         % (style_name, stylefile_basename))
+                            logging.debug("  Adding '%s' (found in '%s')." % (style_name, stylefile_basename))
 
                             self.styles[style_name] = \
                                 PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
@@ -270,8 +270,7 @@ class PanacheStyles:
 
         if style_name not in self.styles:
 
-            logging.debug("  Adding '%s' (found in '%s')."
-                         % (style_name, stylefile_basename))
+            logging.debug("  Adding '%s' (found in '%s')." % (style_name, stylefile_basename))
 
             self.styles[style_name] = update
 
@@ -457,11 +456,11 @@ AUTHOR
         if not match:
             raise PanacheException("Invalid style variable '%s'." % style_var, 104)
         key = match.group(1)
-        value =  match.group(2)
+        value = match.group(2)
         if key not in style_vars:
             style_vars[key] = value
         elif isinstance(style_vars[key], list):
-            style_vars[key].append(value)
+            list(style_vars[key]).append(value)
         else:
             style_vars[key] = [style_vars[key], value]
 
@@ -482,11 +481,12 @@ def silent_remove(filename):
             # but re-raise any other
             raise
 
+
 def get_yaml_lines(lines):
     """" Strip `lines' to those lines that are YAML.
     """
     start = re.compile('^[-]{3}\s*$', flags=0)
-    stop = re.compile('^[-\.]{3}\s*$', flags=0)
+    stop = re.compile('^[-.]{3}\s*$', flags=0)
     in_yaml = False
     yaml_lines = list()
     for line in lines:
@@ -501,7 +501,7 @@ def get_yaml_lines(lines):
     return yaml_lines
 
 
-def get_input_yaml(file, style_vars = {}):
+def get_input_yaml(file, style_vars):
     """" Get YAML from a Pandoc-flavored Markdown file.
     """
 
@@ -524,8 +524,8 @@ def get_input_yaml(file, style_vars = {}):
 
     try:
         data = yaml.load(rendered_content)
-    except yaml.scanner.ScannerError as e:
-        raise PanacheException("YAML error in input:\n%s\n" % (e), 200)
+    except ScannerError as e:
+        raise PanacheException("YAML error in input:\n%s\n" % e, 200)
 
     return data
 
@@ -536,10 +536,10 @@ def determine_style(options, input_yaml):
 
     # try the challenge response
     if (options
-        and input_yaml
-        and options.medium
-        and STYLES_ in input_yaml
-        and options.medium in input_yaml[STYLES_]):
+            and input_yaml
+            and options.medium
+            and STYLES_ in input_yaml
+            and options.medium in input_yaml[STYLES_]):
         return input_yaml[STYLES_][options.medium]
 
     # if challange response fails try fallback
@@ -621,10 +621,10 @@ def main():
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
             metadata = yaml.dump(parameters[METADATA_],
-                      default_flow_style=False,
-                      encoding='utf-8',
-                      explicit_start=True,
-                      explicit_end=True)
+                                 default_flow_style=False,
+                                 encoding='utf-8',
+                                 explicit_start=True,
+                                 explicit_end=True)
             f.write(metadata)
             metadata_file = f.name.replace(os.path.sep, '/')
             logging.info("Wrote following metadata to temp. file '%s'.\n  %s"
