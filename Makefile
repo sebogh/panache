@@ -19,16 +19,7 @@ test: venv
 	)
 
 
-dist: bin/panache
-
-bin/panache: venv src/panache.py
-	( \
-		source venv/bin/activate; \
-		pyinstaller --onefile src/panache.py --distpath=bin; \
-		chmod 755 bin/panache; \
-	)
-
-docker-buildserver: src/panache.py
+dist: src/panache.py
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-linux
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
 
