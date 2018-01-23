@@ -143,7 +143,7 @@ Run `panache.py`.
 
 Make sure the following requirement is satisfied:
 
--    [Pandoc] >= 2.0
+-    [Pandoc] >= 2.1
 
 Dowload the latest binary from the [releases page] and run `panache.exe`
 (Windows) or `panache` (Linux).
@@ -178,7 +178,7 @@ If input comes from a file the following additional Style- and Meta-Variables wi
 tbd.
 
 
-[releases page]: https://github.com/sebogh/panache/releases
+[releases page]: https://github.com/sebogh/panache/releases/latest
 [github-repository]: https://github.com/sebogh/panache.git
 [Pandoc]: https://pandoc.org
 [panzer]: https://github.com/msprev/panzer
