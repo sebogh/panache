@@ -65,7 +65,11 @@ def vcs_lookup(input_path):
             match = re.match(r'"(.+);(.+)"\n', stdout)
 
             if match:
-                return match.group(1), match.group(2)
+                revision = match.group(1)
+                dt = datetime.strptime(match.group(2), '%Y-%m-%d %H:%M:%S %z')
+                dt = dt - dt.utcoffset()
+                formatted_date = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                return revision, formatted_date
         else:
 
             # if Git-call failed
