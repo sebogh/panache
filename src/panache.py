@@ -597,8 +597,10 @@ def main():
         # get vcs-info
         if options.input and not options.disable_vcs_lookup:
             vcs_reference, vcs_date = vcs_lookup(options.input)
-            style_vars['vcsreference'] = vcs_reference
-            style_vars['vcsdate'] = vcs_date
+            if vcs_reference:
+                style_vars['vcsreference'] = vcs_reference
+            if vcs_date:
+                style_vars['vcsdate'] = vcs_date
 
         # initialize styles from the data directory
         panache_styles = PanacheStyles(style_vars)
