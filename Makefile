@@ -1,6 +1,6 @@
 SHELL = /bin/bash
-GOALS = venv test dist clean tidy
-.PHONY: help test dist clean tidy
+GOALS = venv test dist clean tidy linux-executable windows-executable
+.PHONY: help test dist clean tidy linux-executable windows-executable
 
 help:
 	@echo "choose a target from $(GOALS)."
@@ -18,11 +18,13 @@ test: venv
 		tests/test_panache.py; \
 	)
 
+dist: linux-executable windows-executable
 
-dist: src/panache.py
+linux-executable: src/panache.py
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-linux
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
 
+windows-executable: src/panache.py
+	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
 
 clean:
 
