@@ -642,6 +642,9 @@ def main():
 
         # write the computed metadata to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as f:
+
+            # make sure YAML starts in a new line
+            f.write("\n\n")
             metadata = yaml.dump(parameters[METADATA_],
                                  default_flow_style=False,
                                  encoding='utf-8',
