@@ -1,5 +1,6 @@
 SHELL = /bin/bash
 GOALS = venv test dist clean tidy linux-executable windows-executable
+MY_UID = $(shell id -u)
 .PHONY: help test dist clean tidy linux-executable windows-executable
 
 help:
@@ -25,10 +26,12 @@ linux-executable: ./dist/linux/panache
 windows-executable: ./dist/windows/panache.exe
 
 ./dist/linux/panache: src/panache.py
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-linux
+	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src" cdrx/pyinstaller-linux
+	docker run -v "$(shell pwd):/src" -e"NEWID=$(shell id -u)" -it debian:stable-slim /bin/bash -c 'chown -R "${NEWID}:${NEWID}" /src'
 
 ./dist/windows/panache.exe: src/panache.py
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
+	docker run -v "$(shell pwd):/src" -e"NEWID=$(shell id -u)" -it debian:stable-slim /bin/bash -c 'chown -R "${NEWID}:${NEWID}" /src'
 
 clean:
 
