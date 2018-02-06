@@ -20,15 +20,17 @@ test: venv
 
 dist: linux-executable windows-executable
 
-linux-executable: src/panache.py
+linux-executable: ./dist/linux/panache
+
+windows-executable: ./dist/windows/panache.exe
+
+./dist/linux/panache: src/panache.py
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-linux
 
-windows-executable: src/panache.py
+./dist/windows/panache.exe: src/panache.py
 	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
 
 clean:
 
 tidy: clean
 	rm -Rf dist
-
-
