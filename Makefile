@@ -1,7 +1,10 @@
 SHELL = /bin/bash
-GOALS = venv test dist clean tidy linux-executable windows-executable
+
 MY_UID = $(shell id -u)
-.PHONY: help test dist clean tidy linux-executable windows-executable
+VERSION = $(shell cat src/panache.py | grep -P '(?<=^version = ")\d+\.\d+\.\d+' -o)
+
+GOALS = venv test dist clean tidy linux-executable windows-executable
+.PHONY: help test dist clean tidy linux-executable windows-executable msi-installer fix-ownership
 
 help:
 	@echo "choose a target from $(GOALS)."
@@ -19,21 +22,33 @@ test: venv
 		tests/test_panache.py; \
 	)
 
-dist: linux-executable windows-executable
+dist: linux-executable windows-executable msi-installer
 
-linux-executable: ./dist/linux/panache
+linux-executable: ./bin/panache fix_ownership
 
-windows-executable: ./dist/windows/panache.exe
+windows-executable: ./bin/panache.exe fix_ownership
 
-./dist/linux/panache: src/panache.py
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src" cdrx/pyinstaller-linux
-	docker run -v "$(shell pwd):/src" -e"NEWID=$(shell id -u)" -it debian:stable-slim /bin/bash -c 'chown -R "${NEWID}:${NEWID}" /src'
+msi-installer: ./bin/panache-${VERSION}.msi fix_ownership
 
-./dist/windows/panache.exe: src/panache.py
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows
-	docker run -v "$(shell pwd):/src" -e"NEWID=$(shell id -u)" -it debian:stable-slim /bin/bash -c 'chown -R "${NEWID}:${NEWID}" /src'
+fix-ownership: 
+	docker run -v "$(shell pwd):/panache" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_UID} /panache"
+
+
+
+./bin/panache: src/panache.py
+	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src" cdrx/pyinstaller-linux && mv ./dist/linux/panache ./bin
+
+./bin/panache.exe: src/panache.py
+	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows && mv ./dist/windows/panache.exe ./bin
+
+./bin/panache-$(VERSION).msi: ./bin/panache.exe
+	docker run -v "$(shell pwd):/panache" -it debian:stable-slim /bin/bash -c "chown -R 1000:1000 /panache"
+	-docker run -v "$(shell pwd):/panache" -it justmoon/wix /bin/bash -c "cd /panache && /usr/bin/wine /home/wix/wix/candle.exe -dVERSION=${VERSION} panache.wxs && /usr/bin/wine /home/wix/wix/light.exe -sval panache.wixobj -out bin/panache-${VERSION}.msi"
+
 
 clean:
+	rm -Rf dist build venv
+	rm -f panache.spec panache.wixobj panache.wixpdb *~
 
 tidy: clean
-	rm -Rf dist
+	rm -f ./bin/panache ./bin/panache.exe ./bin/panache-${VERSION}.msi
