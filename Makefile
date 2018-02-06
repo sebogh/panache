@@ -35,10 +35,10 @@ fix-ownership:
 
 
 ./bin/panache: src/panache.py
-	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src" cdrx/pyinstaller-linux && mv ./dist/linux/panache ./bin
+	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$http_proxy)" -v "$(shell pwd):/src" cdrx/pyinstaller-linux && mkdir ./bin && mv ./dist/linux/panache ./bin
 
 ./bin/panache.exe: src/panache.py
-	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows && mv ./dist/windows/panache.exe ./bin
+	-docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows && mkdir ./bin && mv ./dist/windows/panache.exe ./bin
 
 ./bin/panache-$(VERSION).msi: ./bin/panache.exe
 	docker run -v "$(shell pwd):/panache" -it debian:stable-slim /bin/bash -c "chown -R 1000:1000 /panache"
