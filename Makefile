@@ -24,15 +24,14 @@ test: venv
 
 dist: linux-executable windows-executable msi-installer
 
-linux-executable: ./bin/panache fix_ownership
+linux-executable: ./bin/panache fix-ownership
 
-windows-executable: ./bin/panache.exe fix_ownership
+windows-executable: ./bin/panache.exe fix-ownership
 
-msi-installer: ./bin/panache-${VERSION}.msi fix_ownership
+msi-installer: ./bin/panache-${VERSION}.msi fix-ownership
 
 fix-ownership: 
 	docker run -v "$(shell pwd):/panache" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_UID} /panache"
-
 
 
 ./bin/panache: src/panache.py
@@ -48,7 +47,7 @@ fix-ownership:
 
 clean:
 	rm -Rf dist build venv
-	rm -f panache.spec panache.wixobj panache.wixpdb *~
+	rm -f panache.wixobj bin/panache-${VERSION}.wixpdb *~
 
 tidy: clean
 	rm -f ./bin/panache ./bin/panache.exe ./bin/panache-${VERSION}.msi
