@@ -56,8 +56,8 @@ fix-ownership:
 	docker run -v "$(shell pwd):/panache" -it justmoon/wix /bin/bash -c "cd /panache && /usr/bin/wine /home/wix/wix/candle.exe -dVERSION=${VERSION} panache.wxs && /usr/bin/wine /home/wix/wix/light.exe -sval panache.wixobj -out bin/panache-${VERSION}.msi" \
 	; ret=$$? \
 	; $(FIX_OWNERSHIP) \
+	; chmod 755 ./bin/panache-$(VERSION).msi \
 	; exit $$ret
-	chmod 755 ./bin/panache-$(VERSION).msi
 
 clean:
 	rm -Rf dist build venv
