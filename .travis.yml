@@ -7,10 +7,3 @@ install:
   - pip install -r requirements.txt
 # by default run tests (in stage 'Test')
 script: tests/test_panache.py
-# create an additional build job in the 'Build'-stage
-jobs:
-  include:
-  - stage: build
-    script: pyinstaller --onefile src/panache.py --distpath=dist
-    python: 3.5
-    if: tag =~ ^v\d.\d.\d
