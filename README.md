@@ -1,6 +1,8 @@
 # panache 
 
-[![build-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache) [![codefactor](https://www.codefactor.io/repository/github/sebogh/panache/badge)](https://www.codefactor.io/repository/github/sebogh/panache) [![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache:requirements.txt/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/sebogh/panache:requirements.txt?targetFile=requirements.txt)
+[![build-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache) 
+[![codefactor](https://www.codefactor.io/repository/github/sebogh/panache/badge)](https://www.codefactor.io/repository/github/sebogh/panache) 
+[![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache/badge.svg)](https://snyk.io/test/github/sebogh/panache)
 
 ## Overview
 
