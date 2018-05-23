@@ -1,6 +1,6 @@
 # panache 
 
-[![buil-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache)
+[![buil-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache) [![codefactor](https://www.codefactor.io/repository/github/sebogh/panache/badge)](https://www.codefactor.io/repository/github/sebogh/panache)
 
 ## Overview
 
