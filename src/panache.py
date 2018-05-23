@@ -110,15 +110,15 @@ def vcs_lookup(input_path):
                     else:
 
                         # if it may be a SVN repo but the SVN call failed for some other reason
-                        logging.debug("Error calling SVN. %s" % stderr)
+                        logging.debug("Error calling SVN. %s", stderr)
 
             else:
 
                 # if it may be a Git repo but the Git call failed for some other reason
-                logging.debug("Error calling Git. %s" % stderr)
+                logging.debug("Error calling Git. %s", stderr)
 
     except Exception as e:
-        logging.debug("Error getting VCS info. %s" % e)
+        logging.debug("Error getting VCS info. %s", e)
 
     return '', ''
 
@@ -258,15 +258,15 @@ class PanacheStyles:
 
                         if style_name not in self.styles:
 
-                            logging.debug("  Adding '%s' (found in '%s')." % (style_name, stylefile_basename))
+                            logging.debug("  Adding '%s' (found in '%s').", style_name, stylefile_basename)
 
                             self.styles[style_name] = \
                                 PanacheStyle(style_name, data[STYLEDEF_][style_name], path)
 
                         else:
 
-                            logging.warning("Ignoring duplicate definition of '%s' (found in'%s')."
-                                            % (style_name, stylefile_basename))
+                            logging.warning("Ignoring duplicate definition of '%s' (found in'%s').",
+                                            style_name, stylefile_basename)
 
     def update(self, update):
 
@@ -276,14 +276,14 @@ class PanacheStyles:
 
         if style_name not in self.styles:
 
-            logging.debug("  Adding '%s' (found in '%s')." % (style_name, stylefile_basename))
+            logging.debug("  Adding '%s' (found in '%s').", style_name, stylefile_basename)
 
             self.styles[style_name] = update
 
         else:
             style = self.styles[style_name]
 
-            logging.debug("  Merging '%s' (found in '%s')." % (style_name, stylefile_basename))
+            logging.debug("  Merging '%s' (found in '%s').", style_name, stylefile_basename)
 
             style.commandline = merge_two_dicts(style.commandline, update.commandline)
             style.metadata = merge_two_dicts(style.metadata, update.metadata)
@@ -296,7 +296,7 @@ class PanacheStyles:
             return {COMMANDLINE_: dict(), METADATA_: dict(), FILTER_: list()}
 
         if style_name not in self.styles:
-            logging.warning("  Unknown style '%s'" % style_name)
+            logging.warning("  Unknown style '%s'", style_name)
             return {COMMANDLINE_: dict(), METADATA_: dict(), FILTER_: list()}
 
         style = self.styles[style_name]
@@ -591,7 +591,7 @@ def main():
 
         # parse and validate command line
         options, args, style_vars = parse_cmdline(sys.argv[1:])
-        logging.info("Panache %s ('%s')" % (version, script))
+        logging.info("Panache %s ('%s')", version, script)
         logging.debug("Parsed commandline.")
 
         # get vcs-info
@@ -614,7 +614,7 @@ def main():
             with tempfile.NamedTemporaryFile(delete=False) as f:
                 f.write(sys.stdin.buffer.read())
                 input_file = f.name.replace(os.path.sep, '/')
-                logging.debug("Copied STDIN to temp. file '%s'." % input_file)
+                logging.debug("Copied STDIN to temp. file '%s'.", input_file)
 
         # load YAML from input (either the temporary file or the one name on the command line)
         input_yaml = get_input_yaml(input_file, style_vars)
@@ -629,13 +629,13 @@ def main():
         # determine desired style
         style = determine_style(options, input_yaml)
         if style:
-            logging.info("Computed style '%s'." % style)
+            logging.info("Computed style '%s'.", style)
         else:
             logging.info("Couldn't compute a style.")
 
         # resolve style to Pandoc compile parameters (and metadata)
         parameters = panache_styles.resolve(style)
-        logging.debug("Resolving style '%s'." % style)
+        logging.debug("Resolving style '%s'.", style)
 
         # all stylevariables become metadata (wich may be overwritten by the style)
         parameters[METADATA_] = merge_two_dicts(style_vars, parameters[METADATA_])
@@ -652,8 +652,8 @@ def main():
                                  explicit_end=True)
             f.write(metadata)
             metadata_file = f.name.replace(os.path.sep, '/')
-            logging.info("Wrote following metadata to temp. file '%s'.\n  %s"
-                         % (metadata_file, metadata.decode().rstrip().replace("\n", "\n  ")))
+            logging.info("Wrote following metadata to temp. file '%s'.\n  %s",
+                         metadata_file, metadata.decode().rstrip().replace("\n", "\n  "))
 
         # compile the command
         command = compile_command_line(input_file, metadata_file, parameters, options, args)
@@ -661,16 +661,16 @@ def main():
         # change to the directory containing the input, if not STDIN
         if options.input:
             working_directory = os.path.dirname(options.input)
-            logging.debug("Changing directory to '%s'." % working_directory)
+            logging.debug("Changing directory to '%s'.", working_directory)
             os.chdir(working_directory)
 
         # run the command
-        logging.info("Running:\n  %s" % ' '.join(command))
+        logging.info("Running:\n  %s", ' '.join(command))
         p = run(command, stdout=sys.stdout, stderr=sys.stderr, env=subprocess_environment)
 
         if p.returncode == 0:
             if options.output:
-                logging.info("Created:\n  %s." % options.output)
+                logging.info("Created:\n  %s.", options.output)
         else:
             sys.exit(1)
 
