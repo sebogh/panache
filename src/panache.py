@@ -17,7 +17,8 @@ import glob
 import yaml
 import logging
 import pystache
-import xml.etree.ElementTree
+import defusedxml.ElementTree
+
 from subprocess import PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 from datetime import datetime
@@ -244,7 +245,7 @@ class PanacheStyles:
 
                 # load YAML-data
                 try:
-                    data = yaml.load(rendered_content)
+                    data = yaml.safe_load(rendered_content)
                 except ScannerError as e:
                     raise PanacheException("YAML error in %s:\n%s\n" % (f.name, e), 200)
 
@@ -531,7 +532,7 @@ def get_input_yaml(file, style_vars):
     # load YAML-data
 
     try:
-        data = yaml.load(rendered_content)
+        data = yaml.safe_load(rendered_content)
     except ScannerError as e:
         raise PanacheException("YAML error in input:\n%s\n" % e, 200)
 
