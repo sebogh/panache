@@ -181,45 +181,24 @@ class PanacheException(Exception):
 
 class PanacheStyle:
 
+    @staticmethod
+    def dict_exists(data:dict, name):
+        return name in data and isinstance(data[name], dict)
+
+    @staticmethod
+    def list_exists(data:dict, name):
+        return name in data and isinstance(data[name], list)
+
     def __init__(self, name, data=None, source=None):
 
         # style name
         assert name
         self.name = name
-
-        self.parent = None
-        self.commandline = dict()
-        self.metadata = dict()
-        self.filters_run = list()
-        self.filters_kill = list()
-
-        # parent
-        if data and PARENT_ in data:
-            self.parent = data[PARENT_]
-
-        # commandline
-        if (data
-                and COMMANDLINE_ in data
-                and isinstance(data[COMMANDLINE_], dict)):
-            self.commandline = data[COMMANDLINE_]
-
-        # metadata
-        if (data
-                and METADATA_ in data
-                and isinstance(data[METADATA_], dict)):
-            self.metadata = data[METADATA_]
-
-        # filter
-        if (data
-                and FILTER_ in data
-                and isinstance(data[FILTER_], dict)):
-            if (RUN_ in data[FILTER_]
-                    and isinstance(data[FILTER_][RUN_], list)):
-                self.filters_run = data[FILTER_][RUN_]
-            if (KILL_ in data[FILTER_]
-                    and isinstance(data[FILTER_][KILL_], list)):
-                self.filters_kill = data[FILTER_][KILL_]
-
+        self.parent = data[PARENT_] if data and PARENT_ in data else None
+        self.commandline = data[COMMANDLINE_] if data and PanacheStyle.dict_exists(data, COMMANDLINE_) else dict()
+        self.metadata = data[METADATA_] if data and PanacheStyle.dict_exists(data, METADATA_) else dict()
+        self.filters_run = data[FILTER_][RUN_] if data and PanacheStyle.dict_exists(data, FILTER_) and PanacheStyle.list_exists(data[FILTER_], RUN_) else list()
+        self.filters_kill = data[FILTER_][KILL_] if data and PanacheStyle.dict_exists(data, FILTER_) and PanacheStyle.list_exists(data[FILTER_], KILL_) else list()
         self.source = source
 
 
