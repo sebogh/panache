@@ -174,6 +174,7 @@ class PassThroughOptionParser(OptionParser):
 class PanacheException(Exception):
 
     def __init__(self, message, code=0):
+        super(PanacheException, self).__init__(message)
         self.code = code
         self.message = message
 
@@ -510,12 +511,12 @@ def get_yaml_lines(lines):
     return yaml_lines
 
 
-def get_input_yaml(file, style_vars):
+def get_input_yaml(input_file, style_vars):
     """" Get YAML from a Pandoc-flavored Markdown file.
     """
 
     # read lines from file
-    with open(file, "r", encoding='utf-8') as f:
+    with open(input_file, "r", encoding='utf-8') as f:
         lines = f.readlines()
 
     # strip lines to those that are YAML
