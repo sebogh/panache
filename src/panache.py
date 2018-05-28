@@ -17,7 +17,7 @@ import glob
 import yaml
 import logging
 import pystache
-import defusedxml.ElementTree
+import defusedxml.ElementTree as etree
 
 from subprocess import PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
@@ -87,7 +87,7 @@ def vcs_lookup(input_path):
                 if p.returncode == 0:
                     logging.debug("Input is part of a SVN repo.")
                     stdout = p.stdout.decode("utf8")
-                    root = xml.etree.ElementTree.fromstring(stdout)
+                    root = etree.fromstring(stdout)
                     revision = formatted_date = None
                     entry_attr = root.find('entry').attrib
                     if entry_attr:
