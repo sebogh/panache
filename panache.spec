@@ -2,8 +2,9 @@
 
 block_cipher = None
 
+
 a = Analysis(['src/panache.py'],
-             pathex=[],
+             pathex=['/home/sebastian.bogan/Panache'],
              binaries=[],
              datas=[],
              hiddenimports=[],
