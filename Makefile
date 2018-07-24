@@ -23,7 +23,7 @@ test: venv
 		tests/test_panache.py; \
 	)
 
-dist: README.rst linux-executable windows-executable msi-installer
+dist: README linux-executable windows-executable msi-installer
 
 
 README: README.md
@@ -32,7 +32,13 @@ README: README.md
 tar-file: venv README
 	( \
 		source venv/bin/activate; \
-		python setup.py sdist \
+		python setup.py sdist bdist_wheel \
+	)
+
+upload-to-test-pypi: venv README
+	( \
+		source venv/bin/activate; \
+		python setup.py sdist upload --repository testpypi\
 	)
 
 upload-to-pypi: venv README

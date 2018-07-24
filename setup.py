@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 version = {}
 with open("./panache/version.py") as fp:
@@ -22,5 +22,10 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3.5',
         'Topic :: Text Processing :: Markup',
+      ],
+    install_requires=[
+          'pyyaml>=4.2b1',
+          'pystache',
+          'defusedxml',
       ],
 )

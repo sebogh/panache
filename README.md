@@ -4,6 +4,10 @@
 [![codefactor](https://www.codefactor.io/repository/github/sebogh/panache/badge)](https://www.codefactor.io/repository/github/sebogh/panache) 
 [![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache/badge.svg)](https://snyk.io/test/github/sebogh/panache)
 
+
+https://pypi.org/project/Panache/
+
+
 ## Overview
 
 panache adds styles to [Pandoc]. 
