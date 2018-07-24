@@ -7,11 +7,8 @@ VERSION = $(shell cat panache/version.py | grep -P '(?<=^version = ")\d+\.\d+\.\
 
 FIX_OWNERSHIP = docker run -v "$(shell pwd):/thedir" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_GID} /thedir"
 
-GOALS = venv test dist clean tidy linux-executable windows-executable
-.PHONY: help test dist clean tidy linux-executable windows-executable msi-installer fix-ownership
+.PHONY: help test dist clean tidy linux-executable windows-executable msi-installer fix-ownership tar-file
 
-help:
-	@echo "choose a target from $(GOALS)."
 
 venv: requirements.txt
 	( \
@@ -26,7 +23,23 @@ test: venv
 		tests/test_panache.py; \
 	)
 
-dist: linux-executable windows-executable msi-installer
+dist: README.rst linux-executable windows-executable msi-installer
+
+
+README: README.md
+	pandoc -t rst --toc README.md -o README
+
+tar-file: venv README
+	( \
+		source venv/bin/activate; \
+		python setup.py sdist \
+	)
+
+upload-to-pypi: venv README
+	( \
+		source venv/bin/activate; \
+		python setup.py sdist upload \
+	)
 
 linux-executable: ./bin/panache
 
@@ -62,6 +75,9 @@ fix-ownership:
 
 clean:
 	rm -Rf dist build venv
+	rm -f README
+	rm -f MANIFEST.in
+	rm -f MANIFEST
 	rm -f panache.wixobj bin/panache-${VERSION}.wixpdb *~
 
 tidy: clean

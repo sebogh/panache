@@ -102,3 +102,7 @@ panache.wixpdb
 # ignore emacs backup files
 *~
 
+README
+MANIFEST.in
+MANIFEST
+
