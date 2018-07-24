@@ -3,7 +3,7 @@ SHELL = /bin/bash
 MY_UID = $(shell id -u)
 MY_GID = $(shell id -g)
 
-VERSION = $(shell cat src/panache.py | grep -P '(?<=^version = ")\d+\.\d+\.\d+' -o)
+VERSION = $(shell cat panache/version.py | grep -P '(?<=^version = ")\d+\.\d+\.\d+' -o)
 
 FIX_OWNERSHIP = docker run -v "$(shell pwd):/thedir" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_GID} /thedir"
 
@@ -37,15 +37,15 @@ msi-installer: ./bin/panache-${VERSION}.msi
 fix-ownership: 
 	docker run -v "$(shell pwd):/panache" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_GID} /panache"
 
-./bin/panache: src/panache.py test
+./bin/panache: panache/panache.py test
 	( \
 		source venv/bin/activate; \
-		pyinstaller --onefile src/panache.py --distpath=bin; \
+		pyinstaller --onefile panache/panache.py --distpath=bin; \
 		chmod 755 bin/panache; \
 	)
 
-./bin/panache.exe: src/panache.py test
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows \
+./bin/panache.exe: panache/panache.py test
+	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/panache/" cdrx/pyinstaller-windows \
 	; ret=$$? \
 	; $(FIX_OWNERSHIP) \
 	; exit $$ret

@@ -14,10 +14,9 @@ sample_markdown_file = '%s/sample.md' % resource_dir
 
 sys.path.insert(1, base_dir)
 
-from src.panache import \
-    COMMANDLINE_, FILTER_, METADATA_, STYLEDEF_, STYLES_, \
+from panache.panache import COMMANDLINE_, FILTER_, METADATA_, STYLEDEF_, STYLES_, \
     PanacheStyle, PanacheStyles, panache_yaml_format_variables, \
-    parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line
+    parse_cmdline, get_yaml_lines, get_input_yaml, determine_style, compile_command_line, __version__
 
 # ensure correct python version
 if sys.version_info.major < 3 or sys.version_info.minor < 5:
@@ -30,6 +29,9 @@ class SimpleTestCase(unittest.TestCase):
     @staticmethod
     def construct_lines(txt):
         return list(map(lambda x: x + '\n', re.split(r'\n', txt)))
+
+    def test_version(self):
+        self.assertIsNotNone(__version__)
 
     def test_get_yaml_lines_1(self):
         lines = self.construct_lines("---\nfoo: bar\n---\nblub")

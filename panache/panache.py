@@ -23,17 +23,20 @@ from subprocess import PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 from datetime import datetime
 from yaml.scanner import ScannerError
+from .version import __version__
+
+
 
 # check script environment
 if getattr(sys, 'frozen', False):
     script = os.path.realpath(sys.executable).replace(os.path.sep, '/')
 elif __file__:
     script = os.path.realpath(__file__).replace(os.path.sep, '/')
-script_dir = os.path.dirname(script)
-script_base = os.path.basename(script)
-user_home = os.path.expanduser("~")
-default_style_dir = os.path.join(user_home, ".panache").replace(os.path.sep, '/')
-version = "0.2.5"
+__script_dir__ = os.path.dirname(script)
+__script_base__ = os.path.basename(script)
+__user_home__ = os.path.expanduser("~")
+__default_style_dir__ = os.path.join(__user_home__, ".panache").replace(os.path.sep, '/')
+
 
 # setup logging
 logging.basicConfig(format="%(message)s")
@@ -297,7 +300,7 @@ def parse_cmdline(cl):
     """Parse and validate the command line.
     """
 
-    usage = "%s [<OPTIONS>] [<PANDOC-OPTIONS>]" % script_base
+    usage = "%s [<OPTIONS>] [<PANDOC-OPTIONS>]" % __script_base__
     parser = PassThroughOptionParser(usage, add_help_option=False)
     parser.add_option("--input", dest="input", default="")
     parser.add_option("--output", dest="output", default="")
@@ -318,7 +321,7 @@ def parse_cmdline(cl):
 Default style directory: '{default_style_dir}'
 Copyright (C) 2006-2018 Sebastian Bogan
 Web: https://github.com/sebogh/panache
-""".format(**{'version': version, 'default_style_dir': default_style_dir}))
+""".format(**{'version': __version__, 'default_style_dir': __default_style_dir__}))
         sys.exit(0)
 
     if options.help:
@@ -372,7 +375,7 @@ AUTHOR
 
     Sebastian Bogan sebogh@qibli.net
 
-""".format(**{'name': script_base, 'usage': usage, 'default_style_dir': default_style_dir}))
+""".format(**{'name': __script_base__, 'usage': usage, 'default_style_dir': __default_style_dir__}))
         sys.exit(0)
 
     if options.verbose:
@@ -397,13 +400,13 @@ AUTHOR
         options.style_dir = os.path.abspath(options.style_dir).replace(os.path.sep, '/')
         if not os.path.isdir(options.style_dir):
             raise PanacheException("No such directory '%s'." % options.style_dir, 103)
-    elif os.path.isdir(default_style_dir):
-        options.style_dir = default_style_dir
+    elif os.path.isdir(__default_style_dir__):
+        options.style_dir = __default_style_dir__
 
     # default style variables
     style_vars = {
-        'panache_dir': script_dir,
-        'panache_version_%s' % version: True,
+        'panache_dir': __script_dir__,
+        'panache_version_%s' % __version__: True,
         'os_%s' % os.name: True,
         'build_date': '%s' % datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'input_dir': '',
@@ -572,7 +575,7 @@ def main():
 
         # parse and validate command line
         options, args, style_vars = parse_cmdline(sys.argv[1:])
-        logging.info("Panache %s ('%s')", version, script)
+        logging.info("Panache %s ('%s')", __version__, script)
         logging.debug("Parsed commandline.")
 
         # get vcs-info
