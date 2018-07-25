@@ -2,7 +2,7 @@
 
 [![build-status](https://travis-ci.org/sebogh/panache.svg?branch=master)](https://travis-ci.org/sebogh/panache) 
 [![codefactor](https://www.codefactor.io/repository/github/sebogh/panache/badge)](https://www.codefactor.io/repository/github/sebogh/panache) 
-[![Pypi](https://img.shields.io/pypi/v/panache.svg)](https://img.shields.io/pypi/v/panache.svg) 
+[![Pypi](https://img.shields.io/pypi/v/panache.svg)](https://pypi.org/project/Panache/) 
 [![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache/badge.svg)](https://snyk.io/test/github/sebogh/panache)
 
 
