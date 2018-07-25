@@ -5,8 +5,6 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache/badge.svg)](https://snyk.io/test/github/sebogh/panache)
 [![Pypi](https://img.shields.io/pypi/v/panache.svg)](https://img.shields.io/pypi/v/panache.svg)
 
-https://pypi.org/project/Panache/
-
 
 ## Overview
 
