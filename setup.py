@@ -23,6 +23,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Topic :: Text Processing :: Markup',
       ],
+    python_requires='>3.5.0',
     install_requires=[
           'pyyaml>=4.2b1',
           'pystache',

@@ -16,13 +16,14 @@ venv: requirements.txt
 		source venv/bin/activate; \
 		pip install -U -r requirements.txt; \
 		pip install pyinstaller; \
-		true; \
+		pip install twine; \
+		true \
 	)
 
 test: venv
 	( \
 		source venv/bin/activate; \
-		tests/test_panache.py; \
+		tests/test_panache.py \
 	)
 
 dist: README linux-executable windows-executable msi-installer
@@ -34,19 +35,20 @@ README: README.md
 tar-file: venv README
 	( \
 		source venv/bin/activate; \
+		rm -f dist/*.tar.gz dist/*.whl; \
 		python setup.py sdist bdist_wheel \
 	)
 
-upload-to-test-pypi: venv README
+upload-to-test-pypi: venv README tar-file
 	( \
 		source venv/bin/activate; \
-		python setup.py sdist upload --repository testpypi\
+		twine upload --repository-url https://test.pypi.org/legacy/ dist/* \
 	)
 
 upload-to-pypi: venv README
 	( \
 		source venv/bin/activate; \
-		python setup.py sdist upload \
+		twine upload --repository-url https://upload.pypi.org/legacy/ dist/* \
 	)
 
 linux-executable: ./bin/panache
