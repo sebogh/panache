@@ -68,7 +68,8 @@ styledef_:
 ---
 ```
 
-A second derived style, that changes the template, may be defined by adding:
+A second -- derived -- style, that changes the template (`template`), may be
+defined by adding:
     
 ```yaml
 ---
