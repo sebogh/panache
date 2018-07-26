@@ -301,81 +301,36 @@ def parse_cmdline(cl):
     """
 
     usage = "%s [<OPTIONS>] [<PANDOC-OPTIONS>]" % __script_base__
-    parser = PassThroughOptionParser(usage, add_help_option=False)
-    parser.add_option("--input", dest="input", default="")
-    parser.add_option("--output", dest="output", default="")
-    parser.add_option("-h", "--help", dest="help", action="store_true", default=False)
-    parser.add_option("--style", dest="style", default="")
-    parser.add_option("--medium", dest="medium", default="")
-    parser.add_option("--debug", dest="debug", action="store_true", default=False)
-    parser.add_option("--verbose", dest="verbose", action="store_true", default=False)
-    parser.add_option("--version", dest="version", action="store_true", default=False)
-    parser.add_option("--disable-vcs-lookup", dest="disable_vcs_lookup", action="store_true", default=False)
-    parser.add_option("--style-dir", dest="style_dir")
-    parser.add_option("--style-var", dest="style_vars", action="append", default=[])
+    parser = PassThroughOptionParser(usage)
+    parser.add_option("--input", dest="input", default="",
+                      help="The input path. Default `STDIN`.", metavar="PATH")
+    parser.add_option("--output", dest="output", default="",
+                      help="The ouput path. Default `STDIN`.", metavar="PATH")
+    parser.add_option("--medium", dest="medium", default="",
+                      help="The target medium.", metavar="MEDIUM")
+    parser.add_option("--style", dest="style", default="",
+                      help="The fallback style to use, if --medium is not specified or the input doesn't specify a style for the given medium.", metavar="STYLE")
+    parser.add_option("--style-var", dest="style_vars", action="append", default=[],
+                      help="A variable that should be replaced in the style template. May be used several times. If the same key is used several times, then the variable is interpreted as list of values.", metavar="KEY:VALUE")
+    parser.add_option("--style-dir", dest="style_dir",
+                      help="Where to find style definitions. (Default: `%s`)." % __default_style_dir__, metavar="PATH")
+    parser.add_option("--disable-vcs-lookup", dest="disable_vcs_lookup", action="store_true", default=False,
+                      help="Don't try to get VCS reference and last change date.")
+    parser.add_option("--verbose", dest="verbose", action="store_true", default=False,
+                      help="Print debug info (to `STDERR`).")
+    parser.add_option("--debug", dest="debug", action="store_true", default=False,
+                      help="Print debug info (to `STDERR`).")
+    parser.add_option("--version", dest="version", action="store_true", default=False,
+                      help="Print panache version info and exit.")
 
     (options, args) = parser.parse_args(cl)
 
     if options.version:
         os.sys.stderr.write("""panache {version}
 Default style directory: '{default_style_dir}'
-Copyright (C) 2006-2018 Sebastian Bogan
+Copyright (C) 2017-2018 Sebastian Bogan
 Web: https://github.com/sebogh/panache
 """.format(**{'version': __version__, 'default_style_dir': __default_style_dir__}))
-        sys.exit(0)
-
-    if options.help:
-        os.sys.stderr.write("""
-NAME
-
-    {name}
-
-SYNOPSIS
-
-    {usage}
-
-DESCRIPTION
-
-    Pandoc wrapper implementing styles.
-
-OPTIONS
-
-    --input=<PATH>
-        The input path. Default STDIN.
-    --output=<PATH>
-        The output path. Default STDOUT.
-    --medium=<MEDIUM>
-        The target medium.
-    --style=<STYLE>
-        The fallback style to use, if --medium is not specified or
-        the input doesn't specify a style for the given medium. 
-    --style-dir=<PATH>
-        Where to find style definitions.
-        (Default: '{default_style_dir}'). 
-    --style-var=<KEY>:<VALUE>    
-        A variable that should be replaced in the style template.
-        May be used several times. If the same key is used several 
-        times, then the variable is interpreted as list of values.
-    --disable-vcs-lookup
-        Don't try to get VCS reference and last change date.
-    --verbose
-        Print verbose info (to STDERR).
-    --debug
-        Print all debug info (to STDERR).
-    --version
-        Print panache version info and exit.
-    -h, --help
-        Print this help message.
-
-PANDOC-OPTIONS
-
-    Any argument not being one of the above options is passed down to Pandoc. 
-
-AUTHOR
-
-    Sebastian Bogan sebogh@qibli.net
-
-""".format(**{'name': __script_base__, 'usage': usage, 'default_style_dir': __default_style_dir__}))
         sys.exit(0)
 
     if options.verbose:
