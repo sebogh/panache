@@ -84,7 +84,7 @@ fix-ownership:
 	; exit $$ret
 
 clean:
-	rm -Rf dist build venv
+	rm -Rf dist build venv Panache.egg-info
 	rm -f README
 	rm -f MANIFEST.in
 	rm -f MANIFEST
