@@ -3,7 +3,7 @@ SHELL = /bin/bash
 MY_UID = $(shell id -u)
 MY_GID = $(shell id -g)
 
-VERSION = $(shell cat panache/version.py | grep -P '(?<=^version = ")\d+\.\d+\.\d+' -o)
+VERSION = $(shell cat panache/version.py | grep -P '(?<=^__version__ = ")\d+\.\d+\.\d+' -o)
 
 FIX_OWNERSHIP = docker run -v "$(shell pwd):/thedir" -it debian:stable-slim /bin/bash -c "chown -R ${MY_UID}:${MY_GID} /thedir"
 
@@ -68,7 +68,7 @@ fix-ownership:
 	)
 
 ./bin/panache.exe: panache/panache.py test
-	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/panache/" cdrx/pyinstaller-windows \
+	docker run -e http_proxy="$(shell echo $$http_proxy)" -e https_proxy="$(shell echo $$https_proxy)" -v "$(shell pwd):/src/" cdrx/pyinstaller-windows \
 	; ret=$$? \
 	; $(FIX_OWNERSHIP) \
 	; exit $$ret

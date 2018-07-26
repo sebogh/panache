@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['src/panache.py'],
+a = Analysis(['panache/panache.py'],
              pathex=['/home/sebastian.bogan/Panache'],
              binaries=[],
              datas=[],
