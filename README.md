@@ -87,11 +87,11 @@ file.
 
 Obviously, the style definitions above may work for the user `sebastian` but are
 likely to fail for a different user. This is where parameterized style definitions
-may be handy.
+come into play.
 
 panache uses [{{ mustache }}](https://github.com/mustache/mustache.github.com)
-as template engine. Through that, panache allows to use "tags" in style
-definitions, wich are substituted based on commandline options and some
+as template engine for style files. Through that, panache allows to use "keywords"
+in style definitions, wich are substituted based on commandline options and some
 defaults. Using this, the above definition of the `germanwikihtml`-style may be
 rewritten as follows:
 
@@ -108,7 +108,7 @@ Now, if `--style-var=home:/home/sebastian` would be passed to
 panache, then `template` would be resolved to 
 `/home/sebastian/pandoc-templates/wiki-de.html` (and as
 `--template=/home/sebastian/pandoc-templates/wiki-de.html` passed to Pandoc).
-Obviously, using `--style-var=home:~` makes the panache call user agnostic
+Obviously, using `--style-var=home:~` makes the panache-call user agnostic
 (in Bash).
 
 Using regular [{{ mustache }}-syntax](http://mustache.github.io/mustache.5.html)
@@ -129,21 +129,28 @@ Both options will be described below.
 
 Make sure the following requirements are satisfied:
 
--    [Pandoc] >= 2.0
--    Python >= 3.4 (incl. pyyaml, pystache)
--    \[git\]
--    \[virtualenv\]
+-    [Pandoc] >= 2.1
+-    Python >= 3.5
 
-Get `panache.py` by either:
+Use `pip` to install panache:
 
--   getting the latest release from the [releases page] or
--   cloning the [github-repository]:
+-   globally
 
     ~~~~ {.bash}
-    git clone https://github.com/sebogh/panache.git
+    pip install panache
+	# /usr/lib/python3/dist-packages/panache/panache.py --version
     ~~~~
 
-Run `panache.py`.
+    or locally:
+
+    ~~~~ {.bash}
+    mkdir panache
+    cd panache/
+    virtualenv -p /usr/bin/python3 venv
+    source venv/bin/activate
+    pip install panache
+    # python3 ./venv/lib/python3.6/site-packages/panache/panache.py --version
+    ~~~~
 
 ## Binary 
 
@@ -151,14 +158,13 @@ Make sure the following requirement is satisfied:
 
 -    [Pandoc] >= 2.1
 
-Dowload the latest binary from the [releases page] and run `panache.exe`
-(Windows) or `panache` (Linux).
+Dowload an appropriate binary from the [releases page].
 
 # Details
 
 ## Default Style- and Meta-Variables
 
-The following Style- and Meta-Variables will be added by default, if input comes from STDIN:
+The following Style- and Meta-Variables will be added by default, if input comes from file or STDIN:
 
 | Variable                | Description                                                                                |
 |------------------------ |--------------------------------------------------------------------------------------------|
