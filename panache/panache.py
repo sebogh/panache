@@ -23,7 +23,7 @@ from subprocess import PIPE, run
 from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 from datetime import datetime
 from yaml.scanner import ScannerError
-from .version import __version__
+from panache.version import __version__
 
 
 
