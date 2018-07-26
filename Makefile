@@ -26,6 +26,10 @@ test: venv
 		tests/test_panache.py \
 	)
 
+
+docs/panache.1: docs/panache.1.md
+	pandoc -s -t man $< -o $@
+
 dist: README linux-executable windows-executable msi-installer
 
 
@@ -92,3 +96,4 @@ clean:
 
 tidy: clean
 	rm -Rf ./bin
+	rm -f ./docs/panache.1

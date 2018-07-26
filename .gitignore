@@ -107,3 +107,4 @@ MANIFEST.in
 MANIFEST
 
 /.vscode
+/docs/panache.1
