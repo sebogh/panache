@@ -21,18 +21,18 @@ panache is similar to others in that cascading styles may be defined in separate
 YAML-files and within documents.
 
 panache is different in that its styles may contain variables and that documents
-may specify multiple styles / context dependable styles.
+may specify multiple styles / context-dependable styles.
 
 ## Context Dependable Styles
 
 Often a Markdown document is the source for different targets. For example a
 single document may be converted to HTML as part of a Wiki, a draft HTML file
 may be used while writing the document, and a standalone and self-contained
-HTML-file may be send to a friend. At the same time, all version should be
+HTML-file may be send via email. At the same time, all version should be
 rendered using the private style (as oposed to (for example) a company style).
 
 To address this situation, panache allows documents to specify multiple styles,
-which get selected depending on a commandline option.
+which get selected depending on the selected medium.
 
 Assume, for example, a document with the following metadata-block:
 
@@ -45,11 +45,10 @@ styles_:
 ---
 ```
 
-Depending on the value of the command line option `--medium` (e.g. `darfthtml`,
-`finalhtml`, or `wiki`), panache would select either the
-`privatedrafthtml`-, `privatefinalhtml`- or `wikihtml`-style. It would then 
-compute the commandline, filters and metadata for the selected style and finally 
-call Pandoc.
+Depending on the value of the command line option `--medium` (`darfthtml`,
+`finalhtml`, or `wiki`), panache would select either the `privatedrafthtml`-,
+`privatefinalhtml`- or `wikihtml`-style. It would then compute the commandline
+(options, filters and metadata) for the selected style and finally call Pandoc.
 
 ## Cascading Style Definition
 
