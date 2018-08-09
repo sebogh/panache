@@ -10,7 +10,7 @@ with open("README", "r") as fh:
 setup(
     name='Panache',
     version=version['__version__'],
-    packages=['panache',],
+    packages=['panache'],
     license='BSD 3-Clause License',
     url='https://github.com/sebogh/panache',
     author='Sebastian Bogan',
@@ -29,4 +29,9 @@ setup(
           'pystache',
           'defusedxml',
       ],
+    # entry_points={
+    #       'console_scripts': [
+    #           'panache = panache.panache:main'
+    #       ]
+    #   },
 )
