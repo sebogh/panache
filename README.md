@@ -5,9 +5,6 @@
 [![Pypi](https://img.shields.io/pypi/v/panache.svg)](https://pypi.org/project/Panache/) 
 [![Known Vulnerabilities](https://snyk.io/test/github/sebogh/panache/badge.svg)](https://snyk.io/test/github/sebogh/panache)
 
-
-
-
 ## Overview
 
 panache adds styles to [Pandoc]. 
@@ -38,7 +35,7 @@ Assume, for example, a document with the following metadata-block:
 
 ```yaml
 ---
-styles_:
+styles:
   drafthtml: privatedrafthtml
   finalhtml: privatefinalhtml
   wiki: wikihtml
@@ -57,7 +54,7 @@ definition for a style with the name `wikihtml` might look like the following:
 
 ```yaml
 ---
-styledef_:
+styledef:
   wikihtml:
     commandline:
       template: /home/sebastian/templates/wiki-en.html
@@ -80,7 +77,7 @@ germanwikihtml:
 ---
 ```
 
-to the previous `styledef_` or by adding it to a separate `styledef_` in another
+to the previous `styledef` or by adding it to a separate `styledef` in another
 file.
 
 ## Style Variables

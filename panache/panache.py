@@ -127,8 +127,8 @@ def vcs_lookup(input_path):
     return '', ''
 
 # panache-specific YAML words
-STYLEDEF_ = 'styledef_'
-STYLES_ = 'styles_'
+STYLEDEF_ = 'styledef'
+STYLES_ = 'styles'
 PARENT_ = 'parent'
 COMMANDLINE_ = 'commandline'
 METADATA_ = 'metadata'

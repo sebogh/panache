@@ -1,7 +1,7 @@
 ---
-styles_:
+styles:
     wiki: wikihtml
-styledef_:
+styledef:
     html:
         metadata:
             lang: ru
