@@ -126,8 +126,8 @@ Both options will be described below.
 
 Make sure the following requirements are satisfied:
 
--    [Pandoc] >= 2.1
--    Python >= 3.5
+-    2.1 <= [Pandoc] <= 2.2.1
+-    Python = 3.5
 
 Use `pip` to install panache:
 
@@ -153,7 +153,7 @@ Use `pip` to install panache:
 
 Make sure the following requirement is satisfied:
 
--    [Pandoc] >= 2.1
+-    2.1 <= [Pandoc] <= 2.2.1
 
 Dowload an appropriate binary from the [releases page].
 
