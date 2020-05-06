@@ -9,6 +9,7 @@ FIX_OWNERSHIP = docker run -v "$(shell pwd):/thedir" -it debian:stable-slim /bin
 
 .PHONY: help test dist clean tidy linux-executable windows-executable msi-installer fix-ownership tar-file
 
+main: linux-executable
 
 venv: requirements.txt
 	( \
